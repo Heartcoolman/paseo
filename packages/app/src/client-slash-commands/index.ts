@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import type { Agent } from "@/stores/session-store";
 import type { WorkspaceDraftTabSetup } from "@/stores/workspace-tabs-store";
 
@@ -17,7 +18,9 @@ export const CLIENT_SLASH_COMMANDS: readonly ClientSlashCommand[] = [
   {
     name: "exit",
     aliases: ["quit", "q"],
-    description: "Archive the current agent",
+    get description() {
+      return i18n.t("shortcuts.slashCommand.exitDescription");
+    },
     argumentHint: "",
     kind: "archive-agent",
     execution: "immediate",
@@ -25,7 +28,9 @@ export const CLIENT_SLASH_COMMANDS: readonly ClientSlashCommand[] = [
   {
     name: "clear",
     aliases: ["new"],
-    description: "Archive this agent and start a fresh draft",
+    get description() {
+      return i18n.t("shortcuts.slashCommand.clearDescription");
+    },
     argumentHint: "",
     kind: "replace-agent-with-draft",
     execution: "immediate",

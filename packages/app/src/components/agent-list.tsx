@@ -10,7 +10,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCallback, useMemo, useState, type ReactElement } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import i18n from "@/i18n";
 import { useIsCompactFormFactor } from "@/constants/layout";
 import { formatTimeAgo } from "@/utils/time";
 import { shortenPath } from "@/utils/shorten-path";
@@ -34,7 +36,7 @@ interface AgentListProps {
 }
 
 type FlatListItem =
-  | { type: "header"; key: string; title: string }
+  | { type: "header"; key: string; sectionKey: DateSectionKey }
   | { type: "agent"; key: string; agent: AggregatedAgent };
 
 function buildHistoricalAgentDetail(agent: AggregatedAgent): Agent {
@@ -94,7 +96,17 @@ function rememberArchivedAgentDetail(agent: AggregatedAgent) {
   });
 }
 
-function deriveDateSectionLabel(lastActivityAt: Date): string {
+type DateSectionKey = "today" | "yesterday" | "thisWeek" | "thisMonth" | "older";
+
+const DATE_SECTION_ORDER: readonly DateSectionKey[] = [
+  "today",
+  "yesterday",
+  "thisWeek",
+  "thisMonth",
+  "older",
+];
+
+function deriveDateSectionKey(lastActivityAt: Date): DateSectionKey {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
@@ -105,35 +117,39 @@ function deriveDateSectionLabel(lastActivityAt: Date): string {
   );
 
   if (activityStart.getTime() >= todayStart.getTime()) {
-    return "Today";
+    return "today";
   }
   if (activityStart.getTime() >= yesterdayStart.getTime()) {
-    return "Yesterday";
+    return "yesterday";
   }
 
   const diffTime = todayStart.getTime() - activityStart.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   if (diffDays <= 7) {
-    return "This week";
+    return "thisWeek";
   }
   if (diffDays <= 30) {
-    return "This month";
+    return "thisMonth";
   }
-  return "Older";
+  return "older";
+}
+
+function formatDateSectionLabel(key: DateSectionKey): string {
+  return i18n.t(`agent.sectionHeader.${key}`);
 }
 
 function formatStatusLabel(status: AggregatedAgent["status"]): string {
   switch (status) {
     case "initializing":
-      return "Starting";
+      return i18n.t("agent.status.starting");
     case "idle":
-      return "Idle";
+      return i18n.t("agent.status.idle");
     case "running":
-      return "Running";
+      return i18n.t("agent.status.running");
     case "error":
-      return "Error";
+      return i18n.t("agent.status.error");
     case "closed":
-      return "Closed";
+      return i18n.t("agent.status.closed");
     default:
       return status;
   }
@@ -187,6 +203,7 @@ function SessionRow({
   onPress: (agent: AggregatedAgent) => void;
   onLongPress: (agent: AggregatedAgent) => void;
 }) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const timeAgo = formatTimeAgo(agent.lastActivityAt);
   const agentKey = `${agent.serverId}:${agent.id}`;
@@ -231,14 +248,19 @@ function SessionRow({
             <ProviderIcon size={theme.iconSize.sm} color={theme.colors.foregroundMuted} />
           </View>
           <Text style={sessionTitleStyle} numberOfLines={1}>
-            {agent.title || "New session"}
+            {agent.title || t("agent.list.newSession")}
           </Text>
-          {agent.archivedAt ? <SessionBadge label="Archived" icon={archivedIcon} /> : null}
+          {agent.archivedAt ? (
+            <SessionBadge label={t("agent.list.badgeArchived")} icon={archivedIcon} />
+          ) : null}
           {(agent.pendingPermissionCount ?? 0) > 0 ? (
-            <SessionBadge label={`${agent.pendingPermissionCount} pending`} tone="warning" />
+            <SessionBadge
+              label={t("agent.list.pendingCount", { count: agent.pendingPermissionCount ?? 0 })}
+              tone="warning"
+            />
           ) : null}
           {!isMobile && showAttentionIndicator && agent.requiresAttention ? (
-            <SessionBadge label="Attention" tone="danger" />
+            <SessionBadge label={t("agent.list.badgeAttention")} tone="danger" />
           ) : null}
         </View>
         {isMobile && (
@@ -272,7 +294,7 @@ function SessionRow({
       )}
       {isMobile && showAttentionIndicator && agent.requiresAttention ? (
         <View style={styles.rowTrailing}>
-          <SessionBadge label="Attention" tone="danger" />
+          <SessionBadge label={t("agent.list.badgeAttention")} tone="danger" />
         </View>
       ) : null}
     </Pressable>
@@ -288,6 +310,7 @@ export function AgentList({
   listFooterComponent,
   showAttentionIndicator = true,
 }: AgentListProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const insets = useSafeAreaInsets();
   const [actionAgent, setActionAgent] = useState<AggregatedAgent | null>(null);
@@ -354,22 +377,21 @@ export function AgentList({
   }, [actionAgent, actionClient, archiveAgent]);
 
   const flatItems = useMemo((): FlatListItem[] => {
-    const order = ["Today", "Yesterday", "This week", "This month", "Older"] as const;
-    const buckets = new Map<string, AggregatedAgent[]>();
+    const buckets = new Map<DateSectionKey, AggregatedAgent[]>();
     for (const agent of agents) {
-      const label = deriveDateSectionLabel(agent.lastActivityAt);
-      const existing = buckets.get(label) ?? [];
+      const sectionKey = deriveDateSectionKey(agent.lastActivityAt);
+      const existing = buckets.get(sectionKey) ?? [];
       existing.push(agent);
-      buckets.set(label, existing);
+      buckets.set(sectionKey, existing);
     }
 
     const result: FlatListItem[] = [];
-    for (const label of order) {
-      const data = buckets.get(label);
+    for (const sectionKey of DATE_SECTION_ORDER) {
+      const data = buckets.get(sectionKey);
       if (!data || data.length === 0) {
         continue;
       }
-      result.push({ type: "header", key: `header:${label}`, title: label });
+      result.push({ type: "header", key: `header:${sectionKey}`, sectionKey });
       for (const agent of data) {
         result.push({ type: "agent", key: `${agent.serverId}:${agent.id}`, agent });
       }
@@ -382,7 +404,7 @@ export function AgentList({
       if (item.type === "header") {
         return (
           <View style={styles.sectionHeading}>
-            <Text style={styles.sectionTitle}>{item.title}</Text>
+            <Text style={styles.sectionTitle}>{formatDateSectionLabel(item.sectionKey)}</Text>
           </View>
         );
       }
@@ -454,8 +476,8 @@ export function AgentList({
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>
               {isActionDaemonUnavailable
-                ? "Host offline"
-                : "This agent is still running. Archiving it will stop the agent."}
+                ? t("agent.actionSheet.hostOffline")
+                : t("agent.actionSheet.runningArchiveWarning")}
             </Text>
             <View style={styles.sheetButtonRow}>
               <Pressable
@@ -463,7 +485,7 @@ export function AgentList({
                 onPress={handleCloseActionSheet}
                 testID="agent-action-cancel"
               >
-                <Text style={styles.sheetCancelText}>Cancel</Text>
+                <Text style={styles.sheetCancelText}>{t("common.action.cancel")}</Text>
               </Pressable>
               <Pressable
                 disabled={isActionDaemonUnavailable}
@@ -471,7 +493,7 @@ export function AgentList({
                 onPress={handleArchiveAgent}
                 testID="agent-action-archive"
               >
-                <Text style={sheetArchiveTextStyle}>Archive</Text>
+                <Text style={sheetArchiveTextStyle}>{t("agent.actionSheet.archive")}</Text>
               </Pressable>
             </View>
           </View>

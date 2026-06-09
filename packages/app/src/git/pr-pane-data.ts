@@ -2,6 +2,7 @@ import type {
   CheckoutPrStatusResponse,
   PullRequestTimelineResponse,
 } from "@getpaseo/protocol/messages";
+import i18n from "@/i18n";
 
 export type PrState = "open" | "draft" | "merged" | "closed";
 export type CheckStatus = "success" | "failure" | "pending" | "skipped";
@@ -92,29 +93,29 @@ export function formatAge(createdAtMs: number, nowMs = Date.now()): string {
   const elapsedSeconds = Math.floor(elapsedMs / 1000);
 
   if (elapsedSeconds < 60) {
-    return "just now";
+    return i18n.t("git.relativeTime.justNow");
   }
 
   const elapsedMinutes = Math.floor(elapsedSeconds / 60);
   if (elapsedMinutes < 60) {
-    return `${elapsedMinutes}m ago`;
+    return i18n.t("git.relativeTime.minutesAgo", { count: elapsedMinutes });
   }
 
   const elapsedHours = Math.floor(elapsedMinutes / 60);
   if (elapsedHours < 24) {
-    return `${elapsedHours}h ago`;
+    return i18n.t("git.relativeTime.hoursAgo", { count: elapsedHours });
   }
 
   const elapsedDays = Math.floor(elapsedHours / 24);
   if (elapsedDays < 30) {
-    return `${elapsedDays}d ago`;
+    return i18n.t("git.relativeTime.daysAgo", { count: elapsedDays });
   }
 
   if (elapsedDays < 365) {
-    return `${Math.floor(elapsedDays / 30)}mo ago`;
+    return i18n.t("git.relativeTime.monthsAgo", { count: Math.floor(elapsedDays / 30) });
   }
 
-  return `${Math.floor(elapsedDays / 365)}y ago`;
+  return i18n.t("git.relativeTime.yearsAgo", { count: Math.floor(elapsedDays / 365) });
 }
 
 function derivePrState(status: NonNullable<CheckoutPrStatus>): PrState {
@@ -227,15 +228,15 @@ function hashLogin(login: string): number {
 }
 
 export function getStateLabel(state: PrState): string {
-  if (state === "draft") return "Draft";
-  if (state === "merged") return "Merged";
-  if (state === "closed") return "Closed";
-  return "Open";
+  if (state === "draft") return i18n.t("git.prState.draft");
+  if (state === "merged") return i18n.t("git.prState.merged");
+  if (state === "closed") return i18n.t("git.prState.closed");
+  return i18n.t("git.prState.open");
 }
 
 export function getActivityVerb(item: Pick<PrPaneActivity, "kind" | "reviewState">): string {
-  if (item.kind === "comment") return "Commented";
-  if (item.reviewState === "approved") return "Approved";
-  if (item.reviewState === "changes_requested") return "Requested changes";
-  return "Reviewed";
+  if (item.kind === "comment") return i18n.t("git.activity.commented");
+  if (item.reviewState === "approved") return i18n.t("git.activity.approved");
+  if (item.reviewState === "changes_requested") return i18n.t("git.activity.requestedChanges");
+  return i18n.t("git.activity.reviewed");
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, type ReactElement, type RefObject } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import {
   ActivityIndicator,
@@ -44,12 +45,17 @@ import { formatTimeAgo } from "@/utils/time";
 import { buildAbsoluteExplorerPath } from "@/utils/explorer-paths";
 import { useWebScrollViewScrollbar } from "@/components/use-web-scrollbar";
 import { isWeb } from "@/constants/platform";
+import i18n from "@/i18n";
 
-const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: "name", label: "Name" },
-  { value: "modified", label: "Modified" },
-  { value: "size", label: "Size" },
-];
+const SORT_OPTION_VALUES: SortOption[] = ["name", "modified", "size"];
+
+function getSortOptions(): { value: SortOption; label: string }[] {
+  return [
+    { value: "name", label: i18n.t("workspace.explorer.sortName") },
+    { value: "modified", label: i18n.t("workspace.explorer.sortModified") },
+    { value: "size", label: i18n.t("workspace.explorer.sortSize") },
+  ];
+}
 
 const INDENT_PER_LEVEL = 16;
 
@@ -114,6 +120,7 @@ function TreeRowItem({
   onCopyPath,
   onDownloadEntry,
 }: TreeRowItemProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const isDirectory = entry.kind === "directory";
 
@@ -181,7 +188,7 @@ function TreeRowItem({
           <View style={styles.contextMetaBlock}>
             <View style={styles.contextMetaRow}>
               <Text style={styles.contextMetaLabel} numberOfLines={1}>
-                Size
+                {t("workspace.explorer.metaSize")}
               </Text>
               <Text style={styles.contextMetaValue} numberOfLines={1} ellipsizeMode="tail">
                 {formatFileSize({ size: entry.size })}
@@ -189,7 +196,7 @@ function TreeRowItem({
             </View>
             <View style={styles.contextMetaRow}>
               <Text style={styles.contextMetaLabel} numberOfLines={1}>
-                Modified
+                {t("workspace.explorer.metaModified")}
               </Text>
               <Text style={styles.contextMetaValue} numberOfLines={1} ellipsizeMode="tail">
                 {formatTimeAgo(new Date(entry.modifiedAt))}
@@ -198,11 +205,11 @@ function TreeRowItem({
           </View>
           <DropdownMenuSeparator />
           <DropdownMenuItem leading={copyLeading} onSelect={handleCopy}>
-            Copy path
+            {t("workspace.explorer.copyPath")}
           </DropdownMenuItem>
           {entry.kind === "file" ? (
             <DropdownMenuItem leading={downloadLeading} onSelect={handleDownload}>
-              Download
+              {t("workspace.explorer.download")}
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>
@@ -229,6 +236,7 @@ export function FileExplorerPane({
   workspaceRoot,
   onOpenFile,
 }: FileExplorerPaneProps) {
+  const { t } = useTranslation();
   const isMobile = useIsCompactFormFactor();
   const showDesktopWebScrollbar = isWeb && !isMobile;
 
@@ -371,9 +379,9 @@ export function FileExplorerPane({
   );
 
   const handleSortCycle = useCallback(() => {
-    const currentIndex = SORT_OPTIONS.findIndex((opt) => opt.value === sortOption);
-    const nextIndex = (currentIndex + 1) % SORT_OPTIONS.length;
-    setSortOption(SORT_OPTIONS[nextIndex].value);
+    const currentIndex = SORT_OPTION_VALUES.indexOf(sortOption);
+    const nextIndex = (currentIndex + 1) % SORT_OPTION_VALUES.length;
+    setSortOption(SORT_OPTION_VALUES[nextIndex]);
   }, [sortOption, setSortOption]);
 
   const refreshExplorer = useCallback(
@@ -453,7 +461,7 @@ export function FileExplorerPane({
   if (!hasWorkspaceScope) {
     return (
       <View style={styles.centerState}>
-        <Text style={styles.errorText}>Workspace is unavailable</Text>
+        <Text style={styles.errorText}>{t("workspace.explorer.unavailable")}</Text>
       </View>
     );
   }
@@ -502,6 +510,7 @@ interface FileExplorerPaneContentProps {
 }
 
 function FileExplorerPaneContent(props: FileExplorerPaneContentProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const {
     error,
@@ -529,11 +538,11 @@ function FileExplorerPaneContent(props: FileExplorerPaneContentProps) {
         <View style={styles.errorActions}>
           {showBackFromError ? (
             <Pressable style={styles.retryButton} onPress={handleBackFromError}>
-              <Text style={styles.retryButtonText}>Back</Text>
+              <Text style={styles.retryButtonText}>{t("common.action.back")}</Text>
             </Pressable>
           ) : null}
           <Pressable style={styles.retryButton} onPress={handleRetry}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>{t("common.action.retry")}</Text>
           </Pressable>
         </View>
       </View>
@@ -544,7 +553,7 @@ function FileExplorerPaneContent(props: FileExplorerPaneContentProps) {
     return (
       <View style={styles.centerState}>
         <ActivityIndicator size="small" />
-        <Text style={styles.loadingText}>Loading files…</Text>
+        <Text style={styles.loadingText}>{t("workspace.explorer.loadingFiles")}</Text>
       </View>
     );
   }
@@ -552,7 +561,7 @@ function FileExplorerPaneContent(props: FileExplorerPaneContentProps) {
   if (treeRows.length === 0) {
     return (
       <View style={styles.centerState}>
-        <Text style={styles.emptyText}>No files</Text>
+        <Text style={styles.emptyText}>{t("workspace.explorer.noFiles")}</Text>
       </View>
     );
   }
@@ -570,7 +579,11 @@ function FileExplorerPaneContent(props: FileExplorerPaneContentProps) {
           hitSlop={8}
           style={iconButtonStyleProp}
           accessibilityRole="button"
-          accessibilityLabel={isRefreshFetching ? "Refreshing files" : "Refresh files"}
+          accessibilityLabel={
+            isRefreshFetching
+              ? t("workspace.explorer.refreshingFiles")
+              : t("workspace.explorer.refreshFiles")
+          }
         >
           <View style={styles.refreshIcon}>
             {isRefreshFetching ? (
@@ -705,7 +718,10 @@ function resolveShowInitialLoading({
 }
 
 function resolveCurrentSortLabel(sortOption: SortOption): string {
-  return SORT_OPTIONS.find((opt) => opt.value === sortOption)?.label ?? "Name";
+  const options = getSortOptions();
+  return (
+    options.find((opt) => opt.value === sortOption)?.label ?? i18n.t("workspace.explorer.sortName")
+  );
 }
 
 function resolveTreeRows({

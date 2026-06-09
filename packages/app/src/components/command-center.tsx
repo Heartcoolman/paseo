@@ -8,6 +8,7 @@ import {
   type PressableStateCallbackType,
 } from "react-native";
 import { memo, useCallback, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Home, Plus, Settings } from "lucide-react-native";
 import { StyleSheet, useUnistyles, withUnistyles } from "react-native-unistyles";
 import { useCommandCenter } from "@/hooks/use-command-center";
@@ -201,6 +202,7 @@ interface CommandCenterAgentRowContentProps {
 }
 
 function CommandCenterAgentRowContent({ agent }: CommandCenterAgentRowContentProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const titleStyle = useMemo(
     () => [styles.title, { color: theme.colors.foreground }],
@@ -222,7 +224,7 @@ function CommandCenterAgentRowContent({ agent }: CommandCenterAgentRowContentPro
         </View>
         <View style={styles.textContent}>
           <Text style={titleStyle} numberOfLines={1}>
-            {agent.title || "New agent"}
+            {agent.title || t("pairing.commandCenter.newAgent")}
           </Text>
           <Text style={subtitleStyle} numberOfLines={1}>
             {shortenPath(agent.cwd)} · {formatTimeAgo(agent.lastActivityAt)}
@@ -256,10 +258,11 @@ function AgentItemsSection({
   sectionDividerStyle,
   sectionLabelStyle,
 }: AgentItemsSectionProps) {
+  const { t } = useTranslation();
   return (
     <>
       {actionItemsLength > 0 ? <View style={sectionDividerStyle} /> : null}
-      <Text style={sectionLabelStyle}>Agents</Text>
+      <Text style={sectionLabelStyle}>{t("pairing.commandCenter.agents")}</Text>
       {agentItems.map((item, index) => {
         const rowIndex = actionItemsLength + index;
         const agent = item.agent;
@@ -282,6 +285,7 @@ function AgentItemsSection({
 }
 
 export function CommandCenter() {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const {
     open,
@@ -442,12 +446,12 @@ export function CommandCenter() {
 
   const resultList =
     items.length === 0 ? (
-      <Text style={emptyTextStyle}>No matches</Text>
+      <Text style={emptyTextStyle}>{t("pairing.commandCenter.noMatches")}</Text>
     ) : (
       <>
         {actionItems.length > 0 ? (
           <>
-            <Text style={sectionLabelStyle}>Actions</Text>
+            <Text style={sectionLabelStyle}>{t("pairing.commandCenter.actions")}</Text>
             {actionItems.map((item, index) => (
               <CommandCenterActionRow
                 key={`action:${item.action.id}`}
@@ -501,7 +505,7 @@ export function CommandCenter() {
             onChangeText={setQuery}
             onKeyPress={handleKeyPress}
             onSubmitEditing={handleSubmitEditing}
-            placeholder="Type a command or search agents..."
+            placeholder={t("pairing.commandCenter.searchPlaceholder")}
             style={inputStyle}
             autoCapitalize="none"
             autoCorrect={false}
@@ -534,7 +538,7 @@ export function CommandCenter() {
               ref={inputRef}
               value={query}
               onChangeText={setQuery}
-              placeholder="Type a command or search agents..."
+              placeholder={t("pairing.commandCenter.searchPlaceholder")}
               placeholderTextColor={theme.colors.foregroundMuted}
               style={inputStyle}
               autoCapitalize="none"

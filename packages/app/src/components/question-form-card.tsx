@@ -8,6 +8,8 @@ import {
   type PressableStateCallbackType,
 } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { useIsCompactFormFactor } from "@/constants/layout";
 import { Check, X } from "lucide-react-native";
 import type { PendingPermission } from "@/types/shared";
@@ -34,7 +36,10 @@ const IS_WEB = isWeb;
 
 function getQuestionInputPlaceholder(question: QuestionFormQuestion): string {
   return (
-    question.placeholder ?? (question.options.length === 0 ? "Type your answer..." : "Other...")
+    question.placeholder ??
+    (question.options.length === 0
+      ? i18n.t("common.questionForm.typeAnswerPlaceholder")
+      : i18n.t("common.questionForm.otherPlaceholder"))
   );
 }
 
@@ -126,6 +131,7 @@ function QuestionNavButton({
   isResponding,
   onSelect,
 }: QuestionNavButtonProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const accessibilityState = useMemo(() => ({ selected: isActive }), [isActive]);
   const handlePress = useCallback(() => {
@@ -162,7 +168,7 @@ function QuestionNavButton({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Question ${index + 1} of ${total}`}
+      accessibilityLabel={t("common.questionForm.questionNav", { current: index + 1, total })}
       accessibilityState={accessibilityState}
       aria-selected={isActive}
       testID={`question-form-question-nav-${index + 1}`}
@@ -237,6 +243,7 @@ function QuestionOtherInput({
 }
 
 export function QuestionFormCard({ permission, onRespond, isResponding }: QuestionFormCardProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const isMobile = useIsCompactFormFactor();
   const questions = useMemo(
@@ -332,9 +339,9 @@ export function QuestionFormCard({ permission, onRespond, isResponding }: Questi
     }
     onRespond({
       behavior: "deny",
-      message: "Dismissed by user",
+      message: t("common.questionForm.dismissedByUser"),
     });
-  }, [questions, onRespond, otherTexts, permission.request.input, selections]);
+  }, [questions, onRespond, otherTexts, permission.request.input, selections, t]);
 
   const handleSelectQuestion = useCallback((index: number) => {
     setActiveQuestionIndex(index);
@@ -488,7 +495,7 @@ export function QuestionFormCard({ permission, onRespond, isResponding }: Questi
           onPress={handleSubmit}
           disabled={submitDisabled}
           accessibilityRole="button"
-          accessibilityLabel="Submit"
+          accessibilityLabel={t("common.action.submit")}
           testID="question-form-primary-action"
         >
           {respondingAction === "submit" ? (
@@ -496,7 +503,7 @@ export function QuestionFormCard({ permission, onRespond, isResponding }: Questi
           ) : (
             <View style={styles.actionContent}>
               <Check size={14} color={submitActionTextColor} />
-              <Text style={submitActionTextStyle}>Submit</Text>
+              <Text style={submitActionTextStyle}>{t("common.action.submit")}</Text>
             </View>
           )}
         </Pressable>

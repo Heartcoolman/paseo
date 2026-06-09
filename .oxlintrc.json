@@ -71,6 +71,8 @@
           "**/react-native",
           "**/@/styles/unistyles",
           "**/src/styles/unistyles",
+          "**/@/i18n",
+          "**/src/i18n",
           "**/@/test/window-local-storage"
         ]
       }

@@ -1,4 +1,5 @@
 import type { GitHubSearchItem } from "@getpaseo/protocol/messages";
+import i18n from "@/i18n";
 import type {
   AttachmentMetadata,
   ComposerAttachment,
@@ -275,7 +276,8 @@ export async function sendQueuedComposerMessageNow(
     });
     return {
       status: "failed",
-      errorMessage: error instanceof Error ? error.message : "Failed to send message",
+      errorMessage:
+        error instanceof Error ? error.message : i18n.t("common.composer.failedToSendMessage"),
     };
   }
 }

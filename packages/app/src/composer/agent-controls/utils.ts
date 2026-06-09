@@ -1,4 +1,5 @@
 import type { AgentFeature, AgentModelDefinition } from "@getpaseo/protocol/agent-types";
+import i18n from "@/i18n";
 
 export type ExplainedAgentControl = "mode" | "model" | "thinking";
 export type FeatureHighlightColor = "blue" | "default" | "green" | "yellow";
@@ -6,11 +7,11 @@ export type FeatureHighlightColor = "blue" | "default" | "green" | "yellow";
 export function getAgentControlHint(selector: ExplainedAgentControl): string {
   switch (selector) {
     case "thinking":
-      return "Thinking mode";
+      return i18n.t("composer.agentControls.thinkingMode");
     case "model":
-      return "Change model";
+      return i18n.t("composer.agentControls.changeModel");
     case "mode":
-      return "Change permission mode";
+      return i18n.t("composer.agentControls.changePermissionMode");
     default:
       throw new Error("unreachable");
   }
@@ -79,7 +80,7 @@ export function formatThinkingOptionLabel(option: ControlLabelInput): string {
   const compactLabel = rawLabel.replace(/[\s_-]+/g, "").toLowerCase();
 
   if (compactId === "xhigh" || compactLabel === "xhigh") {
-    return "Extra high";
+    return i18n.t("composer.agentControls.extraHigh");
   }
 
   return formatControlLabel(option, true);
@@ -147,7 +148,10 @@ function resolveModelDisplay(
   return {
     activeModelId: selectedModel?.id ?? preferredModelId ?? null,
     displayModel:
-      selectedModel?.label ?? preferredModelId ?? fallbackModel?.label ?? "Unknown model",
+      selectedModel?.label ??
+      preferredModelId ??
+      fallbackModel?.label ??
+      i18n.t("composer.agentControls.unknownModel"),
   };
 }
 
@@ -163,7 +167,7 @@ function resolveThinkingDisplay(
     return formatThinkingOptionLabel({ id: selectedThinkingId });
   }
 
-  return "Unknown";
+  return i18n.t("composer.agentControls.unknown");
 }
 
 export function resolveAgentModelSelection(input: {

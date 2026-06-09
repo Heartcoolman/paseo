@@ -104,6 +104,8 @@ import { useGithubSearchQuery } from "@/git/use-github-search-query";
 import { useCheckoutStatusQuery } from "@/git/use-status-query";
 import { useComposerGithubAutoAttach } from "./github/auto-attach";
 import { resolveClientSlashCommand, type ClientSlashCommand } from "@/client-slash-commands";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 type QueuedMessage = QueuedComposerMessage;
 
@@ -145,7 +147,9 @@ function resolveCompactLayout(override: boolean | undefined, formFactor: boolean
 }
 
 function resolveMessagePlaceholder(isDesktopWebBreakpoint: boolean): string {
-  return isDesktopWebBreakpoint ? DESKTOP_MESSAGE_PLACEHOLDER : MOBILE_MESSAGE_PLACEHOLDER;
+  return isDesktopWebBreakpoint
+    ? i18n.t("composer.input.desktopPlaceholder")
+    : i18n.t("composer.input.mobilePlaceholder");
 }
 
 function resolveGithubSearchEnabled(
@@ -473,6 +477,7 @@ interface QueuedMessageRowProps {
 }
 
 function QueuedMessageRow({ item, onEdit, onSendNow }: QueuedMessageRowProps) {
+  const { t } = useTranslation();
   const handleEdit = useCallback(() => {
     onEdit(item.id);
   }, [onEdit, item.id]);
@@ -488,7 +493,7 @@ function QueuedMessageRow({ item, onEdit, onSendNow }: QueuedMessageRowProps) {
         <Pressable
           onPress={handleEdit}
           style={styles.queueActionButton}
-          accessibilityLabel="Edit queued message"
+          accessibilityLabel={t("composer.queue.editQueuedMessage")}
           accessibilityRole="button"
         >
           <ThemedPencil size={ICON_SIZE.sm} uniProps={iconForegroundMapping} />
@@ -496,7 +501,7 @@ function QueuedMessageRow({ item, onEdit, onSendNow }: QueuedMessageRowProps) {
         <Pressable
           onPress={handleSendNow}
           style={QUEUE_SEND_BUTTON_STYLE}
-          accessibilityLabel="Send queued message now"
+          accessibilityLabel={t("composer.queue.sendQueuedMessageNow")}
           accessibilityRole="button"
         >
           <ThemedArrowUp size={ICON_SIZE.sm} uniProps={iconAccentForegroundMapping} />
@@ -530,6 +535,7 @@ function ImageAttachmentPill({
   onOpen,
   onRemove,
 }: ImageAttachmentPillProps) {
+  const { t } = useTranslation();
   const handleOpen = useCallback(() => {
     onOpen(attachment);
   }, [onOpen, attachment]);
@@ -541,8 +547,8 @@ function ImageAttachmentPill({
       testID="composer-image-attachment-pill"
       onOpen={handleOpen}
       onRemove={handleRemove}
-      openAccessibilityLabel="Open image attachment"
-      removeAccessibilityLabel="Remove image attachment"
+      openAccessibilityLabel={t("composer.attachment.openImage")}
+      removeAccessibilityLabel={t("composer.attachment.removeImage")}
       disabled={disabled}
     >
       <ImageAttachmentThumbnail image={attachment.metadata} />
@@ -565,8 +571,9 @@ function GithubAttachmentPill({
   onOpen,
   onRemove,
 }: GithubAttachmentPillProps) {
+  const { t } = useTranslation();
   const item = attachment.item;
-  const kindLabel = item.kind === "pr" ? "PR" : "issue";
+  const kindLabel = item.kind === "pr" ? "PR" : t("composer.github.kindIssue");
   const handleOpen = useCallback(() => {
     onOpen(attachment);
   }, [onOpen, attachment]);
@@ -578,8 +585,14 @@ function GithubAttachmentPill({
       testID="composer-github-attachment-pill"
       onOpen={handleOpen}
       onRemove={handleRemove}
-      openAccessibilityLabel={`Open ${kindLabel} #${item.number}`}
-      removeAccessibilityLabel={`Remove ${kindLabel} #${item.number}`}
+      openAccessibilityLabel={t("composer.github.openItem", {
+        kind: kindLabel,
+        number: item.number,
+      })}
+      removeAccessibilityLabel={t("composer.github.removeItem", {
+        kind: kindLabel,
+        number: item.number,
+      })}
       disabled={disabled}
     >
       <View style={styles.githubPillBody}>
@@ -691,8 +704,6 @@ interface ComposerProps {
 }
 
 const EMPTY_ARRAY: readonly QueuedMessage[] = [];
-const DESKTOP_MESSAGE_PLACEHOLDER = "Message the agent, tag @files, or use /commands and /skills";
-const MOBILE_MESSAGE_PLACEHOLDER = "Message, @files, /commands";
 const StableMessageInput = memo(MessageInput);
 
 function resolveContextWindowValues(
@@ -722,7 +733,10 @@ function ComposerCancelButton({
   isCancellingAgent,
   agentInterruptKeys,
 }: ComposerCancelButtonProps) {
-  const accessibilityLabel = isCancellingAgent ? "Canceling agent" : "Stop agent";
+  const { t } = useTranslation();
+  const accessibilityLabel = isCancellingAgent
+    ? t("composer.cancel.cancelingAgent")
+    : t("composer.cancel.stopAgent");
   const icon = isCancellingAgent ? (
     <ActivityIndicator size="small" color="white" />
   ) : (
@@ -742,7 +756,7 @@ function ComposerCancelButton({
       </TooltipTrigger>
       <TooltipContent side="top" align="center" offset={8}>
         <View style={styles.tooltipRow}>
-          <Text style={styles.tooltipText}>Interrupt</Text>
+          <Text style={styles.tooltipText}>{t("composer.cancel.interrupt")}</Text>
           {shortcutNode}
         </View>
       </TooltipContent>
@@ -818,6 +832,7 @@ function ComposerVoiceModeButton({
   realtimeVoiceButtonStyle,
   voiceToggleKeys,
 }: ComposerVoiceModeButtonProps) {
+  const { t } = useTranslation();
   const shortcutNode = voiceToggleKeys ? <Shortcut chord={voiceToggleKeys} /> : null;
   const renderTriggerContent = useCallback(
     ({ hovered }: PressableStateCallbackType & { hovered?: boolean }) => {
@@ -834,7 +849,7 @@ function ComposerVoiceModeButton({
       <TooltipTrigger
         onPress={handleToggleRealtimeVoice}
         disabled={!isConnected || isVoiceSwitching}
-        accessibilityLabel="Enable Voice mode"
+        accessibilityLabel={t("composer.voice.enableVoiceMode")}
         accessibilityRole="button"
         style={realtimeVoiceButtonStyle}
       >
@@ -842,7 +857,7 @@ function ComposerVoiceModeButton({
       </TooltipTrigger>
       <TooltipContent side="top" align="center" offset={8}>
         <View style={styles.tooltipRow}>
-          <Text style={styles.tooltipText}>Voice mode</Text>
+          <Text style={styles.tooltipText}>{t("composer.voice.voiceMode")}</Text>
           {shortcutNode}
         </View>
       </TooltipContent>
@@ -885,6 +900,7 @@ export function Composer({
   externalKeyboardShift,
   isCompactLayout: isCompactLayoutOverride,
 }: ComposerProps) {
+  const { t } = useTranslation();
   const buttonIconSize = resolveComposerButtonIconSize();
   const client = useHostRuntimeClient(serverId);
   const isConnected = useHostRuntimeIsConnected(serverId);
@@ -1526,7 +1542,7 @@ export function Composer({
     () => [
       {
         id: "image",
-        label: "Add image",
+        label: t("composer.menu.addImage"),
         icon: <ThemedPaperclip size={ICON_SIZE.md} uniProps={iconForegroundMutedMapping} />,
         onSelect: () => {
           void handlePickImage();
@@ -1534,14 +1550,14 @@ export function Composer({
       },
       {
         id: "github",
-        label: "Add issue or PR",
+        label: t("composer.menu.addIssueOrPr"),
         icon: <ThemedGithub size={ICON_SIZE.md} uniProps={iconForegroundMutedMapping} />,
         onSelect: () => {
           setIsGithubPickerOpen(true);
         },
       },
     ],
-    [handlePickImage],
+    [handlePickImage, t],
   );
 
   const handleToggleGithubItem = useCallback(
@@ -1658,8 +1674,8 @@ export function Composer({
     [sendError],
   );
   const githubEmptyText = githubSearchResultsQuery.isFetching
-    ? "Searching..."
-    : "No results found.";
+    ? t("composer.github.searching")
+    : t("composer.github.noResults");
   const autocompleteVisible = autocomplete.isVisible && isPaneFocused;
 
   return (
@@ -1730,8 +1746,8 @@ export function Composer({
               onSelect={noop}
               keepOpenOnSelect
               searchable
-              searchPlaceholder="Search issues and PRs..."
-              title="Attach issue or PR"
+              searchPlaceholder={t("composer.github.searchPlaceholder")}
+              title={t("composer.github.attachIssueOrPr")}
               open={isGithubPickerOpen}
               onOpenChange={handleGithubPickerOpenChange}
               onSearchQueryChange={setGithubSearchQuery}

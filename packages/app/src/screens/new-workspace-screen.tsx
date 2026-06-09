@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { PressableStateCallbackType } from "react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createNameId } from "mnemonic-id";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronDown, Folder, GitBranch, GitPullRequest, X } from "lucide-react-native";
+import i18n from "@/i18n";
 import { Composer } from "@/composer";
 import { DraftAgentModeControl } from "@/composer/agent-controls/mode-control";
 import { splitComposerAttachmentsForSubmit } from "@/composer/attachments/submit";
@@ -163,6 +165,7 @@ function RefPickerTrigger({
   iconColor: string;
   iconSize: number;
 }) {
+  const { t } = useTranslation();
   return (
     <Tooltip>
       <TooltipTrigger asChild triggerRefProp="ref">
@@ -173,7 +176,7 @@ function RefPickerTrigger({
           disabled={disabled}
           style={badgePressableStyle}
           accessibilityRole="button"
-          accessibilityLabel="Starting ref"
+          accessibilityLabel={t("project.newWorkspace.startingRef")}
         >
           <RefPickerBadgeContent
             selectedItem={selectedItem}
@@ -184,7 +187,7 @@ function RefPickerTrigger({
         </Pressable>
       </TooltipTrigger>
       <TooltipContent side="top" align="center" offset={8}>
-        <Text style={styles.tooltipText}>Choose where to start from</Text>
+        <Text style={styles.tooltipText}>{t("project.newWorkspace.chooseStartTooltip")}</Text>
       </TooltipContent>
     </Tooltip>
   );
@@ -211,6 +214,7 @@ function ProjectPickerTrigger({
   iconColor: string;
   iconSize: number;
 }) {
+  const { t } = useTranslation();
   const placeholderLabel = projectIconPlaceholderLabelFromDisplayName(label);
   const placeholderInitial = placeholderLabel.charAt(0).toUpperCase() || "?";
   return (
@@ -223,7 +227,7 @@ function ProjectPickerTrigger({
           disabled={disabled}
           style={badgePressableStyle}
           accessibilityRole="button"
-          accessibilityLabel="Workspace project"
+          accessibilityLabel={t("project.newWorkspace.workspaceProject")}
         >
           <View style={styles.badgeIconBox}>
             {projectKey ? (
@@ -246,7 +250,7 @@ function ProjectPickerTrigger({
         </Pressable>
       </TooltipTrigger>
       <TooltipContent side="top" align="center" offset={8}>
-        <Text style={styles.tooltipText}>Choose project</Text>
+        <Text style={styles.tooltipText}>{t("project.newWorkspace.chooseProjectTooltip")}</Text>
       </TooltipContent>
     </Tooltip>
   );
@@ -265,17 +269,18 @@ function CheckoutHintBadge({
   iconColor: string;
   iconSize: number;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.checkoutHintBadge}>
       <Text style={styles.badgeText} numberOfLines={1}>
-        Check out PR #{prNumber}?
+        {t("project.newWorkspace.checkoutPrQuestion", { prNumber })}
       </Text>
       <Pressable
         testID="new-workspace-checkout-hint-accept"
         onPress={onAccept}
         style={styles.checkoutHintAction}
         accessibilityRole="button"
-        accessibilityLabel={`Check out PR #${prNumber}`}
+        accessibilityLabel={t("project.newWorkspace.checkoutPrAccessibility", { prNumber })}
       >
         <Check size={iconSize} color={iconColor} />
       </Pressable>
@@ -284,7 +289,9 @@ function CheckoutHintBadge({
         onPress={onDismiss}
         style={styles.checkoutHintAction}
         accessibilityRole="button"
-        accessibilityLabel={`Dismiss PR #${prNumber} checkout hint`}
+        accessibilityLabel={t("project.newWorkspace.dismissCheckoutHintAccessibility", {
+          prNumber,
+        })}
       >
         <X size={iconSize} color={iconColor} />
       </Pressable>
@@ -467,6 +474,7 @@ function useNewWorkspaceProjectPicker({
   projectId,
   displayName: displayNameProp,
 }: NewWorkspaceProjectPickerInput): NewWorkspaceProjectPickerState {
+  const { t } = useTranslation();
   const [manualProjectKey, setManualProjectKey] = useState<string | null>(null);
   const displayName = displayNameProp?.trim() ?? "";
   const projects = useHostProjects(serverId || null);
@@ -536,7 +544,7 @@ function useNewWorkspaceProjectPicker({
     projectPickerOptions,
     projectByOptionId,
     selectedProjectOptionId: selectedProject ? projectOptionId(selectedProject.projectKey) : "",
-    projectTriggerLabel: selectedProject?.projectName ?? "Choose project",
+    projectTriggerLabel: selectedProject?.projectName ?? t("project.newWorkspace.chooseProject"),
     handleSelectProjectOption,
   };
 }
@@ -588,7 +596,7 @@ async function createAndMergeWorkspace(input: {
 }): Promise<ReturnType<typeof normalizeWorkspaceDescriptor>> {
   const payload = await input.client.createPaseoWorktree(input.createInput);
   if (payload.error || !payload.workspace) {
-    throw new Error(payload.error ?? "Failed to create worktree");
+    throw new Error(payload.error ?? i18n.t("project.newWorkspace.createWorktreeFailed"));
   }
   const normalizedWorkspace = normalizeWorkspaceDescriptor(payload.workspace);
   const workspaceForInitialMerge = input.createInput.firstAgentContext
@@ -614,11 +622,11 @@ async function runCreateChatAgent(input: CreateChatAgentInput): Promise<void> {
   const { payload, composerState, ensureWorkspace, serverId, draftKey } = input;
   const { text, attachments, cwd } = payload;
   if (!composerState) {
-    throw new Error("Composer state is required");
+    throw new Error(i18n.t("project.newWorkspace.composerStateRequired"));
   }
   const provider = composerState.selectedProvider;
   if (!provider) {
-    throw new Error("Select a model");
+    throw new Error(i18n.t("project.newWorkspace.selectModel"));
   }
   const { attachments: reviewAttachments } = splitComposerAttachmentsForSubmit(attachments);
   const ensuredWorkspace = await ensureWorkspace({
@@ -666,7 +674,7 @@ function computeWorkspaceTitle(
     workspace?.projectDisplayName ||
     displayName ||
     fallbackDirectoryName ||
-    "Choose project"
+    i18n.t("project.newWorkspace.chooseProject")
   );
 }
 
@@ -769,6 +777,7 @@ export function NewWorkspaceScreen({
   projectId,
   displayName: displayNameProp,
 }: NewWorkspaceScreenProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const insets = useSafeAreaInsets();
   const isCompact = useIsCompactFormFactor();
@@ -832,10 +841,10 @@ export function NewWorkspaceScreen({
 
   const withConnectedClient = useCallback(() => {
     if (!client || !isConnected) {
-      throw new Error("Host is not connected");
+      throw new Error(t("project.newWorkspace.hostNotConnected"));
     }
     return client;
-  }, [client, isConnected]);
+  }, [client, isConnected, t]);
 
   const clientReady = isConnected && Boolean(client);
   const hasSelectedSourceDirectory = selectedSourceDirectory !== null;
@@ -845,7 +854,7 @@ export function NewWorkspaceScreen({
     queryKey: ["checkout-status", serverId, selectedSourceDirectory],
     queryFn: async () => {
       if (!selectedSourceDirectory) {
-        throw new Error("Choose a project");
+        throw new Error(t("project.newWorkspace.chooseProjectError"));
       }
       const connectedClient = withConnectedClient();
       return connectedClient.getCheckoutStatus(selectedSourceDirectory);
@@ -863,7 +872,7 @@ export function NewWorkspaceScreen({
     queryKey: ["branch-suggestions", serverId, selectedSourceDirectory, debouncedPickerSearchQuery],
     queryFn: async () => {
       if (!selectedSourceDirectory) {
-        throw new Error("Choose a project");
+        throw new Error(t("project.newWorkspace.chooseProjectError"));
       }
       const connectedClient = withConnectedClient();
       return connectedClient.getBranchSuggestions({
@@ -1016,7 +1025,7 @@ export function NewWorkspaceScreen({
       attachments: AgentAttachment[];
     }): CreatePaseoWorktreeInput => {
       if (!selectedProject) {
-        throw new Error("Choose a project");
+        throw new Error(t("project.newWorkspace.chooseProjectError"));
       }
       const checkoutRequest = resolveCheckoutRequest(selectedItem, currentBranch);
       const trimmedPrompt = input.prompt.trim();
@@ -1037,7 +1046,7 @@ export function NewWorkspaceScreen({
         ...checkoutRequest,
       };
     },
-    [currentBranch, selectedItem, selectedProject],
+    [currentBranch, selectedItem, selectedProject, t],
   );
 
   const ensureWorkspace = useCallback(
@@ -1197,8 +1206,8 @@ export function NewWorkspaceScreen({
 
   const pickerEmptyText =
     branchSuggestionsQuery.isFetching || githubPrSearchQuery.isFetching
-      ? "Searching..."
-      : "No matching refs.";
+      ? t("project.newWorkspace.searching")
+      : t("project.newWorkspace.noMatchingRefs");
 
   const composerFooter = useMemo(
     () => (
@@ -1224,13 +1233,13 @@ export function NewWorkspaceScreen({
             value={selectedProjectOptionId}
             onSelect={handleSelectProjectOption}
             searchable
-            searchPlaceholder="Search projects"
-            title="Project"
+            searchPlaceholder={t("project.newWorkspace.searchProjects")}
+            title={t("project.newWorkspace.projectTitle")}
             open={projectPickerOpen}
             onOpenChange={handleProjectPickerOpenChange}
             desktopPlacement="bottom-start"
             anchorRef={projectPickerAnchorRef}
-            emptyText="No projects available."
+            emptyText={t("project.newWorkspace.noProjectsAvailable")}
             renderOption={renderProjectOption}
           />
         </View>
@@ -1250,8 +1259,8 @@ export function NewWorkspaceScreen({
             value={selectedOptionId}
             onSelect={handleSelectOption}
             searchable
-            searchPlaceholder="Search branches and PRs"
-            title="Start from"
+            searchPlaceholder={t("project.newWorkspace.searchBranchesAndPrs")}
+            title={t("project.newWorkspace.startFrom")}
             open={pickerOpen}
             onOpenChange={handlePickerOpenChange}
             onSearchQueryChange={setPickerSearchQuery}
@@ -1306,6 +1315,7 @@ export function NewWorkspaceScreen({
       theme.colors.foregroundMuted,
       theme.iconSize.sm,
       triggerLabel,
+      t,
     ],
   );
 
@@ -1318,7 +1328,7 @@ export function NewWorkspaceScreen({
               <SidebarMenuToggle />
               <View style={styles.headerTitleContainer}>
                 <Text style={styles.headerTitle} numberOfLines={1}>
-                  New workspace
+                  {t("project.newWorkspace.headerTitle")}
                 </Text>
                 <Text style={styles.headerProjectTitle} numberOfLines={1}>
                   {workspaceTitle}
@@ -1338,7 +1348,7 @@ export function NewWorkspaceScreen({
               isPaneFocused={true}
               onSubmitMessage={handleSubmitNewWorkspace}
               allowEmptySubmit={true}
-              submitButtonAccessibilityLabel="Create"
+              submitButtonAccessibilityLabel={t("project.newWorkspace.createAccessibility")}
               submitIcon="return"
               isSubmitLoading={pendingAction !== null}
               submitBehavior="preserve-and-lock"

@@ -33,6 +33,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useWebScrollbarStyle } from "@/hooks/use-web-scrollbar-style";
 import { isWeb } from "@/constants/platform";
 import { useDismissKeyboardOnOpen } from "@/components/ui/keyboard-dismiss";
+import { useTranslation } from "react-i18next";
 
 // Action status for menu items with loading/success feedback
 export type ActionStatus = "idle" | "pending" | "success";
@@ -444,6 +445,7 @@ export function DropdownMenuContent({
 }>): ReactElement | null {
   const { open, setOpen, triggerRef, flushPendingSelect } =
     useDropdownMenuContext("DropdownMenuContent");
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const surfaceNativeID = useId();
   const webScrollbarStyle = useWebScrollbarStyle();
@@ -625,7 +627,7 @@ export function DropdownMenuContent({
       <View style={styles.overlay}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Menu backdrop"
+          accessibilityLabel={t("common.menu.backdrop")}
           style={styles.backdrop}
           onPress={handleClose}
           testID={testID ? `${testID}-backdrop` : undefined}

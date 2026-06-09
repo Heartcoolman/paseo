@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useMemo, type ReactElement } from "react";
+import { useTranslation } from "react-i18next";
 import type { GestureResponderEvent } from "react-native";
 import { Pressable, Text, View } from "react-native";
 import { useMutation } from "@tanstack/react-query";
@@ -169,6 +170,7 @@ function HostLinkChildren({ hovered, disabled, label }: HostLinkChildrenProps): 
 }
 
 function HostLinkRow({ label, url, scriptName, onOpenInBrowserTab }: HostLinkProps): ReactElement {
+  const { t } = useTranslation();
   const disabled = !url;
   const closeMenu = useDropdownMenuClose();
 
@@ -192,7 +194,7 @@ function HostLinkRow({ label, url, scriptName, onOpenInBrowserTab }: HostLinkPro
   return (
     <Pressable
       accessibilityRole="link"
-      accessibilityLabel={`Open ${scriptName} at ${label}`}
+      accessibilityLabel={t("workspace.scripts.openScriptAtHost", { scriptName, host: label })}
       disabled={disabled}
       hitSlop={2}
       onPress={handlePress}
@@ -204,10 +206,11 @@ function HostLinkRow({ label, url, scriptName, onOpenInBrowserTab }: HostLinkPro
 }
 
 function ExitCodeBadge({ code }: { code: number }): ReactElement {
+  const { t } = useTranslation();
   const exitTextStyle = code === 0 ? styles.exitBadgeText : exitBadgeTextErrorStyle;
   return (
     <View style={styles.exitBadge}>
-      <Text style={exitTextStyle}>exit {code}</Text>
+      <Text style={exitTextStyle}>{t("workspace.scripts.exitCode", { code })}</Text>
     </View>
   );
 }
@@ -257,6 +260,7 @@ function ScriptRow({
   onViewTerminal,
   onOpenUrlInBrowserTab,
 }: ScriptRowProps): ReactElement {
+  const { t } = useTranslation();
   const isRunning = script.lifecycle === "running";
   const isService = (script.type ?? "service") === "service";
   const exitCode = script.exitCode ?? null;
@@ -309,21 +313,21 @@ function ScriptRow({
   if (isRunning && liveTerminalId) {
     primaryAction = (
       <ScriptActionButton
-        accessibilityLabel={`View ${script.scriptName} terminal`}
+        accessibilityLabel={t("workspace.scripts.viewTerminal", { scriptName: script.scriptName })}
         testID={`workspace-scripts-view-${script.scriptName}`}
         icon="view"
-        label="View"
+        label={t("workspace.scripts.view")}
         onPress={handleView}
       />
     );
   } else if (!isRunning) {
     primaryAction = (
       <ScriptActionButton
-        accessibilityLabel={`Run ${script.scriptName} script`}
+        accessibilityLabel={t("workspace.scripts.runScript", { scriptName: script.scriptName })}
         testID={`workspace-scripts-start-${script.scriptName}`}
         disabled={isStartPending}
         icon="start"
-        label="Run"
+        label={t("workspace.scripts.run")}
         onPress={handleRun}
       />
     );
@@ -332,7 +336,7 @@ function ScriptRow({
   return (
     <View
       testID={`workspace-scripts-item-${script.scriptName}`}
-      accessibilityLabel={`${script.scriptName} script`}
+      accessibilityLabel={t("workspace.scripts.scriptItem", { scriptName: script.scriptName })}
       style={styles.scriptItem}
     >
       <View style={styles.scriptHeader}>
@@ -372,6 +376,7 @@ export function WorkspaceScriptsButton({
   hideLabels,
   presentation = "split",
 }: WorkspaceScriptsButtonProps): ReactElement | null {
+  const { t } = useTranslation();
   const toast = useToast();
   const client = useSessionStore((state) => state.sessions[serverId]?.client ?? null);
   const activeConnection = useHostRuntimeSnapshot(serverId)?.activeConnection ?? null;
@@ -380,7 +385,7 @@ export function WorkspaceScriptsButton({
   const startScriptMutation = useMutation({
     mutationFn: async (scriptName: string) => {
       if (!client) {
-        throw new Error("Daemon client not available");
+        throw new Error(t("workspace.scripts.daemonClientUnavailable"));
       }
       const result = await client.startWorkspaceScript(workspaceId, scriptName);
       if (result.error) {
@@ -389,9 +394,12 @@ export function WorkspaceScriptsButton({
       return result;
     },
     onError: (error, scriptName) => {
-      toast.show(error instanceof Error ? error.message : `Failed to start ${scriptName}`, {
-        variant: "error",
-      });
+      toast.show(
+        error instanceof Error ? error.message : t("workspace.scripts.startFailed", { scriptName }),
+        {
+          variant: "error",
+        },
+      );
     },
     onSuccess: (result) => {
       if (result.terminalId) {
@@ -432,7 +440,7 @@ export function WorkspaceScriptsButton({
             testID="workspace-scripts-button"
             style={triggerStyle}
             accessibilityRole="button"
-            accessibilityLabel="Workspace scripts"
+            accessibilityLabel={t("workspace.scripts.workspaceScripts")}
           >
             <View style={styles.splitButtonContent}>
               <ThemedPlay
@@ -440,7 +448,9 @@ export function WorkspaceScriptsButton({
                 uniProps={triggerPlayMapping}
                 {...triggerPlayProps}
               />
-              {!hideLabels && <Text style={styles.splitButtonText}>Scripts</Text>}
+              {!hideLabels && (
+                <Text style={styles.splitButtonText}>{t("workspace.scripts.scripts")}</Text>
+              )}
               {presentation === "split" ? (
                 <ThemedChevronDown size={14} uniProps={mutedColorMapping} />
               ) : null}

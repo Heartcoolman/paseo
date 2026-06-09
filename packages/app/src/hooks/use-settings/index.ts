@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import i18n, { resolveLanguage, type LanguagePreference } from "@/i18n";
 import { queryClient as appQueryClient } from "@/query/query-client";
 import {
   DEFAULT_DESKTOP_SETTINGS,
@@ -81,6 +82,7 @@ export interface UseAppSettingsReturn {
   isLoading: boolean;
   error: unknown;
   updateSettings: (updates: Partial<AppSettings>) => Promise<void>;
+  setLanguage: (language: LanguagePreference) => Promise<void>;
   resetSettings: () => Promise<void>;
 }
 
@@ -113,11 +115,22 @@ export function useAppSettings(): UseAppSettingsReturn {
     [queryClient],
   );
 
+  // Persists the preference and applies it live. "system" resolves to the
+  // device locale; the resolver keeps init and this setter in agreement.
+  const setLanguage = useCallback(
+    async (language: LanguagePreference) => {
+      await updateSettings({ language });
+      await i18n.changeLanguage(resolveLanguage(language));
+    },
+    [updateSettings],
+  );
+
   const resetSettings = useCallback(async () => {
     try {
       const next = { ...DEFAULT_CLIENT_SETTINGS };
       queryClient.setQueryData<AppSettings>(APP_SETTINGS_QUERY_KEY, next);
       await AsyncStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(next));
+      await i18n.changeLanguage(resolveLanguage(next.language));
     } catch (err) {
       console.error("[AppSettings] Failed to reset settings:", err);
       throw err;
@@ -129,6 +142,7 @@ export function useAppSettings(): UseAppSettingsReturn {
     isLoading: isPending,
     error: error ?? null,
     updateSettings,
+    setLanguage,
     resetSettings,
   };
 }

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import type { AgentCapabilityFlags } from "@getpaseo/protocol/agent-types";
+import i18n from "@/i18n";
 
 export type RewindMode = "conversation" | "files" | "both";
 
@@ -25,21 +26,21 @@ export function resolveRewindMenuItems(
   if (capabilities.supportsRewindConversation) {
     items.push({
       mode: "conversation",
-      label: "Rewind conversation",
+      label: i18n.t("common.rewind.conversation"),
       testID: "rewind-menu-conversation",
     });
   }
   if (capabilities.supportsRewindFiles) {
     items.push({
       mode: "files",
-      label: "Rewind files",
+      label: i18n.t("common.rewind.files"),
       testID: "rewind-menu-files",
     });
   }
   if (capabilities.supportsRewindBoth) {
     items.push({
       mode: "both",
-      label: "Rewind conversation and files",
+      label: i18n.t("common.rewind.both"),
       testID: "rewind-menu-both",
     });
   }

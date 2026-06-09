@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { useShallow } from "zustand/shallow";
+import { useTranslation } from "react-i18next";
 import { Brain, ChevronDown, ListTodo, Settings2, ShieldCheck, Zap } from "lucide-react-native";
 import { getProviderIcon } from "@/components/provider-icons";
 import { CombinedModelSelector } from "@/components/combined-model-selector";
@@ -63,6 +64,7 @@ import {
 import { useIsCompactFormFactor } from "@/constants/layout";
 import { useToast } from "@/contexts/toast-context";
 import { toErrorMessage } from "@/utils/error-messages";
+import i18n from "@/i18n";
 
 interface AgentControlOption {
   id: string;
@@ -414,6 +416,7 @@ function ControlledAgentControls({
   modelSelectorServerId = null,
   isCompactLayout,
 }: ControlledAgentControlsProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const isCompactFormFactor = useIsCompactFormFactor();
   const isCompact = isCompactLayout ?? isCompactFormFactor;
@@ -432,7 +435,11 @@ function ControlledAgentControls({
     onSelectThinkingOption && thinkingOptions && thinkingOptions.length > 0,
   );
 
-  const displayProvider = findOptionLabel(providerOptions, selectedProviderId, "Provider");
+  const displayProvider = findOptionLabel(
+    providerOptions,
+    selectedProviderId,
+    t("composer.agentControls.provider"),
+  );
   const formattedThinkingOptions = useMemo(
     () => toThinkingControlOptions(thinkingOptions),
     [thinkingOptions],
@@ -440,7 +447,7 @@ function ControlledAgentControls({
   const displayThinking = findOptionLabel(
     formattedThinkingOptions,
     selectedThinkingOptionId,
-    formattedThinkingOptions[0]?.label ?? "Unknown",
+    formattedThinkingOptions[0]?.label ?? t("composer.agentControls.unknown"),
   );
 
   const ProviderIcon = resolveProviderIcon(provider);
@@ -708,6 +715,7 @@ interface DesktopAgentControlsContentProps {
 const DESKTOP_SEARCH_THRESHOLD = 6;
 
 function DesktopAgentControlsContent(props: DesktopAgentControlsContentProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const {
     provider,
@@ -764,7 +772,7 @@ function DesktopAgentControlsContent(props: DesktopAgentControlsContentProps) {
             onPress={handleProviderPress}
             style={providerPressableStyle}
             accessibilityRole="button"
-            accessibilityLabel="Select agent provider"
+            accessibilityLabel={t("composer.agentControls.selectAgentProvider")}
             testID="agent-provider-selector"
           >
             <Text style={styles.modeBadgeText}>{displayProvider}</Text>
@@ -821,7 +829,9 @@ function DesktopAgentControlsContent(props: DesktopAgentControlsContentProps) {
                 onPress={handleThinkingPress}
                 style={thinkingPressableStyle}
                 accessibilityRole="button"
-                accessibilityLabel={`Select thinking option (${displayThinking})`}
+                accessibilityLabel={t("composer.agentControls.selectThinkingOptionNamed", {
+                  option: displayThinking,
+                })}
                 testID="agent-thinking-selector"
               >
                 <Brain size={theme.iconSize.md} color={theme.colors.foregroundMuted} />
@@ -900,6 +910,7 @@ interface SheetAgentControlsContentProps {
 }
 
 function SheetAgentControlsContent(props: SheetAgentControlsContentProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const {
     provider,
@@ -1012,7 +1023,7 @@ function SheetAgentControlsContent(props: SheetAgentControlsContentProps) {
           disabled={disabled || !canSelectThinking}
           style={thinkingButtonStyle}
           accessibilityRole="button"
-          accessibilityLabel="Select thinking option"
+          accessibilityLabel={t("composer.agentControls.selectThinkingOption")}
           testID="agent-controls-thinking"
         >
           <Brain size={theme.iconSize.md} color={theme.colors.foregroundMuted} />
@@ -1025,7 +1036,7 @@ function SheetAgentControlsContent(props: SheetAgentControlsContentProps) {
           disabled={disabled}
           style={featuresButtonStyle}
           accessibilityRole="button"
-          accessibilityLabel="Open agent features"
+          accessibilityLabel={t("composer.agentControls.openAgentFeatures")}
           testID="agent-controls-features"
         >
           <Settings2 size={theme.iconSize.md} color={theme.colors.foregroundMuted} />
@@ -1038,7 +1049,7 @@ function SheetAgentControlsContent(props: SheetAgentControlsContentProps) {
           value={selectedThinkingOptionId ?? ""}
           onSelect={handleSelectThinkingAndClose}
           searchable={false}
-          title="Thinking"
+          title={t("composer.agentControls.thinking")}
           open={activeSheet === "thinking"}
           onOpenChange={handleThinkingSheetOpenChange}
           anchorRef={thinkingAnchorRef}
@@ -1047,7 +1058,7 @@ function SheetAgentControlsContent(props: SheetAgentControlsContentProps) {
       ) : null}
 
       <AdaptiveModalSheet
-        header={FEATURES_SHEET_HEADER}
+        header={getFeaturesSheetHeader()}
         visible={activeSheet === "features"}
         onClose={handleCloseSheet}
         testID="agent-features-sheet"
@@ -1205,6 +1216,7 @@ function SheetFeatureItem({
   handleOpenChange: (selector: AgentControlSelector) => (nextOpen: boolean) => void;
   onSetFeature?: (featureId: string, value: unknown) => void;
 }) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const featureSelector: AgentControlSelector = `feature-${feature.id}`;
 
@@ -1257,7 +1269,11 @@ function SheetFeatureItem({
             )}
           />
           <Text style={styles.sheetSelectText}>{feature.label}</Text>
-          <Text style={styles.modeBadgeText}>{feature.value ? "On" : "Off"}</Text>
+          <Text style={styles.modeBadgeText}>
+            {feature.value
+              ? t("composer.agentControls.featureOn")
+              : t("composer.agentControls.featureOff")}
+          </Text>
         </Pressable>
       </View>
     );
@@ -1344,7 +1360,9 @@ function ThinkingComboboxOption({
   );
 }
 
-const FEATURES_SHEET_HEADER: SheetHeader = { title: "Features" };
+function getFeaturesSheetHeader(): SheetHeader {
+  return { title: i18n.t("composer.agentControls.features") };
+}
 
 export const AgentControls = memo(function AgentControls({
   agentId,

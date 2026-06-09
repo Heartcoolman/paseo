@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { View, Text } from "react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { RotateCw } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { settingsStyles } from "@/styles/settings";
 import { SettingsSection } from "@/screens/settings/settings-section";
 
 export function DesktopPermissionsSection() {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const {
     isDesktopApp,
@@ -59,12 +61,12 @@ export function DesktopPermissionsSection() {
         leftIcon={refreshIcon}
         onPress={handleRefreshPress}
         disabled={isBusy}
-        accessibilityLabel="Refresh desktop permissions"
+        accessibilityLabel={t("desktop.permissions.refreshAccessibility")}
       >
-        {isRefreshing ? "Refreshing..." : "Refresh"}
+        {isRefreshing ? t("desktop.permissions.refreshing") : t("common.action.refresh")}
       </Button>
     ),
-    [refreshIcon, handleRefreshPress, isBusy, isRefreshing],
+    [refreshIcon, handleRefreshPress, isBusy, isRefreshing, t],
   );
 
   if (!isDesktopApp) {
@@ -72,21 +74,21 @@ export function DesktopPermissionsSection() {
   }
 
   return (
-    <SettingsSection title="Permissions" trailing={refreshButton}>
+    <SettingsSection title={t("desktop.permissions.title")} trailing={refreshButton}>
       <View style={settingsStyles.card}>
         <DesktopPermissionRow
-          title="Notifications"
+          title={t("desktop.permissions.notifications")}
           status={snapshot?.notifications ?? null}
           isRequesting={requestingPermission === "notifications"}
           onRequest={handleRequestNotifications}
-          extraActionLabel="Test"
+          extraActionLabel={t("desktop.permissions.test")}
           isExtraActionBusy={isSendingTestNotification}
           isExtraActionDisabled={!notificationsGranted || isBusy}
           onExtraAction={handleSendTestNotification}
         />
         {testNotificationError ? <Text style={errorTextStyle}>{testNotificationError}</Text> : null}
         <DesktopPermissionRow
-          title="Microphone"
+          title={t("desktop.permissions.microphone")}
           showBorder
           status={snapshot?.microphone ?? null}
           isRequesting={requestingPermission === "microphone"}

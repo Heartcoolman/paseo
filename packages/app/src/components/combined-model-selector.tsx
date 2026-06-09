@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -146,6 +147,7 @@ function ModelRow({
   onToggleFavorite?: (provider: string, modelId: string) => void;
 }) {
   const { theme } = useUnistyles();
+  const { t } = useTranslation();
   const ProviderIcon = getProviderIcon(row.provider);
 
   const handleToggleFavorite = useCallback(
@@ -168,7 +170,11 @@ function ModelRow({
           hitSlop={8}
           style={favoriteButtonStyle}
           accessibilityRole="button"
-          accessibilityLabel={isFavorite ? "Unfavorite model" : "Favorite model"}
+          accessibilityLabel={
+            isFavorite
+              ? t("agent.modelSelector.unfavoriteModel")
+              : t("agent.modelSelector.favoriteModel")
+          }
           testID={`favorite-model-${row.provider}-${row.modelId}`}
         >
           {({ hovered }) => {
@@ -195,6 +201,7 @@ function ModelRow({
       theme.colors.palette.amber,
       theme.colors.foregroundMuted,
       theme.colors.border,
+      t,
     ],
   );
 
@@ -260,6 +267,7 @@ function FavoritesSection({
   onSelect: (provider: string, modelId: string) => void;
   onToggleFavorite?: (provider: string, modelId: string) => void;
 }) {
+  const { t } = useTranslation();
   if (favoriteRows.length === 0) {
     return null;
   }
@@ -267,7 +275,7 @@ function FavoritesSection({
   return (
     <View style={styles.favoritesContainer}>
       <View style={styles.sectionHeading}>
-        <Text style={styles.sectionHeadingText}>Favorites</Text>
+        <Text style={styles.sectionHeadingText}>{t("agent.modelSelector.favorites")}</Text>
       </View>
       {favoriteRows.map((row) => (
         <SelectableModelRow
@@ -299,6 +307,7 @@ function iconButtonStyle({ hovered, pressed }: PressableStateCallbackType & { ho
 
 function GroupProviderButton({ provider, onDrillDown }: GroupProviderButtonProps) {
   const { theme } = useUnistyles();
+  const { t } = useTranslation();
   const ProvIcon = getProviderIcon(provider.id);
   const selection = provider.modelSelection;
 
@@ -310,7 +319,7 @@ function GroupProviderButton({ provider, onDrillDown }: GroupProviderButtonProps
   if (selection.kind === "models") {
     const count = selection.rows.length;
     stateNode = (
-      <Text style={styles.drillDownCount}>{`${count} ${count === 1 ? "model" : "models"}`}</Text>
+      <Text style={styles.drillDownCount}>{t("agent.modelSelector.modelCount", { count })}</Text>
     );
   } else if (selection.kind === "loading") {
     stateNode = (
@@ -320,14 +329,14 @@ function GroupProviderButton({ provider, onDrillDown }: GroupProviderButtonProps
           color={theme.colors.foregroundMuted}
           style={styles.rowSpinner}
         />
-        <Text style={styles.drillDownCount}>Loading</Text>
+        <Text style={styles.drillDownCount}>{t("agent.modelSelector.loading")}</Text>
       </View>
     );
   } else {
     stateNode = (
       <View style={styles.rowStateInline}>
         <AlertTriangle size={theme.iconSize.sm} color={theme.colors.foregroundMuted} />
-        <Text style={styles.drillDownCount}>Error</Text>
+        <Text style={styles.drillDownCount}>{t("agent.providerSelection.error")}</Text>
       </View>
     );
   }
@@ -435,6 +444,7 @@ function ProviderErrorEmptyState({
   isRetryingProvider: boolean;
 }) {
   const { theme } = useUnistyles();
+  const { t } = useTranslation();
   const handleRetry = useCallback(() => {
     onRetryProvider?.(providerId);
   }, [onRetryProvider, providerId]);
@@ -444,7 +454,7 @@ function ProviderErrorEmptyState({
       <Text style={styles.emptyStateText}>{message}</Text>
       {onRetryProvider ? (
         <Button variant="default" size="sm" onPress={handleRetry} disabled={isRetryingProvider}>
-          {isRetryingProvider ? "Retrying…" : "Retry"}
+          {isRetryingProvider ? t("agent.modelSelector.retrying") : t("common.action.retry")}
         </Button>
       ) : null}
     </View>
@@ -465,6 +475,7 @@ function SelectorContent({
   isRetryingProvider,
 }: SelectorContentProps) {
   const { theme } = useUnistyles();
+  const { t } = useTranslation();
   const normalizedQuery = useMemo(() => normalizeSearchQuery(searchQuery), [searchQuery]);
   const selectedViewProvider = useMemo(
     () =>
@@ -488,7 +499,7 @@ function SelectorContent({
   const emptyState = (
     <View style={styles.emptyState}>
       <Search size={theme.iconSize.md} color={theme.colors.foregroundMuted} />
-      <Text style={styles.emptyStateText}>No models match your search</Text>
+      <Text style={styles.emptyStateText}>{t("agent.modelSelector.noModelsMatch")}</Text>
     </View>
   );
 
@@ -505,7 +516,7 @@ function SelectorContent({
             color={theme.colors.foregroundMuted}
             style={styles.rowSpinner}
           />
-          <Text style={styles.emptyStateText}>Loading</Text>
+          <Text style={styles.emptyStateText}>{t("agent.modelSelector.loading")}</Text>
         </View>
       );
     }
@@ -573,6 +584,7 @@ export function CombinedModelSelector({
   serverId = null,
 }: CombinedModelSelectorProps) {
   const { theme } = useUnistyles();
+  const { t } = useTranslation();
   const anchorRef = useRef<View>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isContentReady, setIsContentReady] = useState(platformIsWeb);
@@ -657,12 +669,15 @@ export function CombinedModelSelector({
   }, [providers, view]);
 
   const triggerLabel = useMemo(() => {
-    if (selectedModelLabel === "Loading..." || selectedModelLabel === "Select model") {
+    if (
+      selectedModelLabel === t("common.state.loading") ||
+      selectedModelLabel === t("agent.providerSelection.selectModel")
+    ) {
       return selectedModelLabel;
     }
 
     return buildSelectedTriggerLabel(selectedModelLabel);
-  }, [selectedModelLabel]);
+  }, [selectedModelLabel, t]);
 
   useEffect(() => {
     if (platformIsWeb) {
@@ -717,7 +732,7 @@ export function CombinedModelSelector({
 
   const sheetHeader = useMemo<SheetHeader>(() => {
     if (view.kind === "all") {
-      return { title: "Select provider" };
+      return { title: t("agent.modelSelector.selectProvider") };
     }
     const ProviderIconForView = getProviderIcon(view.providerId);
     const headerActions = (
@@ -727,7 +742,9 @@ export function CombinedModelSelector({
         hitSlop={8}
         style={iconButtonStyle}
         accessibilityRole="button"
-        accessibilityLabel={`Open ${view.providerLabel} settings`}
+        accessibilityLabel={t("agent.modelSelector.openProviderSettings", {
+          provider: view.providerLabel,
+        })}
         testID={`selector-header-settings-${view.providerId}`}
       >
         <Settings
@@ -746,7 +763,7 @@ export function CombinedModelSelector({
       search: {
         onChange: handleSearchQueryChange,
         resetKey: `${view.providerId}:${searchResetKey}`,
-        placeholder: "Search models...",
+        placeholder: t("agent.modelSelector.searchModelsPlaceholder"),
         autoFocus: platformIsWeb,
         testID: "model-search-input",
       },
@@ -764,6 +781,7 @@ export function CombinedModelSelector({
     theme.iconSize.md,
     theme.iconSize.sm,
     theme.colors.foreground,
+    t,
   ]);
 
   return (
@@ -775,7 +793,9 @@ export function CombinedModelSelector({
         onPress={handleTriggerPress}
         style={triggerStyle}
         accessibilityRole="button"
-        accessibilityLabel={`Select model (${selectedModelLabel})`}
+        accessibilityLabel={t("agent.modelSelector.selectModelAccessibility", {
+          model: selectedModelLabel,
+        })}
         testID="combined-model-selector"
       >
         {renderTrigger ? (
@@ -827,7 +847,9 @@ export function CombinedModelSelector({
         ) : (
           <View style={styles.sheetLoadingState}>
             <ActivityIndicator size="small" color={theme.colors.foregroundMuted} />
-            <Text style={styles.sheetLoadingText}>Loading model selector…</Text>
+            <Text style={styles.sheetLoadingText}>
+              {t("agent.modelSelector.loadingModelSelector")}
+            </Text>
           </View>
         )}
       </Combobox>

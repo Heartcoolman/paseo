@@ -1,3 +1,4 @@
+import "@/i18n";
 import "@/styles/unistyles";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { PortalProvider } from "@gorhom/portal";
@@ -54,6 +55,7 @@ import { shouldUseDesktopDaemon } from "@/desktop/daemon/desktop-daemon";
 import { listenToDesktopEvent } from "@/desktop/electron/events";
 import { updateDesktopWindowControls } from "@/desktop/electron/window";
 import { getDesktopHost } from "@/desktop/host";
+import i18n, { resolveLanguage } from "@/i18n";
 import { loadDesktopSettings } from "@/desktop/settings/desktop-settings";
 import { RosettaCalloutSource } from "@/desktop/updates/rosetta-callout-source";
 import { UpdateCalloutSource } from "@/desktop/updates/update-callout-source";
@@ -625,6 +627,16 @@ function MobileGestureWrapper({
 function ProvidersWrapper({ children }: { children: ReactNode }) {
   const { settings, isLoading: settingsLoading } = useAppSettings();
   const { upsertConnectionFromOfferUrl } = useHostMutations();
+
+  // Apply the persisted language on mount and when it changes. Init defaults to
+  // the device locale; this promotes a stored override once settings load.
+  useEffect(() => {
+    if (settingsLoading) return;
+    const next = resolveLanguage(settings.language);
+    if (i18n.language !== next) {
+      void i18n.changeLanguage(next);
+    }
+  }, [settingsLoading, settings.language]);
 
   // Apply theme setting on mount and when it changes
   useEffect(() => {

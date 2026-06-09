@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import i18n from "@/i18n";
 import type { PanelDescriptor, PanelIconProps } from "@/panels/panel-registry";
 
 export function buildDraftPanelDescriptor(input: {
@@ -7,11 +8,11 @@ export function buildDraftPanelDescriptor(input: {
   icon: ComponentType<PanelIconProps>;
 }): PanelDescriptor {
   const { icon, isCreating, pendingPrompt } = input;
-  const creatingLabel = pendingPrompt?.trim() || "New Agent";
+  const creatingLabel = pendingPrompt?.trim() || i18n.t("agent.draftPanel.newAgent");
   if (isCreating) {
     return {
       label: creatingLabel,
-      subtitle: "Creating agent",
+      subtitle: i18n.t("agent.draftPanel.creatingAgent"),
       titleState: "ready",
       icon,
       statusBucket: "running",
@@ -19,8 +20,8 @@ export function buildDraftPanelDescriptor(input: {
   }
 
   return {
-    label: "New Agent",
-    subtitle: "New Agent",
+    label: i18n.t("agent.draftPanel.newAgent"),
+    subtitle: i18n.t("agent.draftPanel.newAgent"),
     titleState: "ready",
     icon,
     statusBucket: null,

@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { View, Text } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useIsFocused } from "@react-navigation/native";
 import { router } from "expo-router";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
@@ -22,6 +23,7 @@ export function SessionsScreen({ serverId }: { serverId: string }) {
 }
 
 function SessionsScreenContent({ serverId }: { serverId: string }) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const { agents, hasMore, isInitialLoad, isLoadingMore, isRevalidating, loadMore, refreshAll } =
     useAgentHistory({
@@ -56,16 +58,16 @@ function SessionsScreenContent({ serverId }: { serverId: string }) {
       hasMore ? (
         <View style={styles.footer}>
           <Button variant="ghost" onPress={loadMore} disabled={isLoadingMore}>
-            {isLoadingMore ? "Loading..." : "Load more"}
+            {isLoadingMore ? t("common.state.loading") : t("common.action.loadMore")}
           </Button>
         </View>
       ) : null,
-    [hasMore, loadMore, isLoadingMore],
+    [hasMore, loadMore, isLoadingMore, t],
   );
 
   return (
     <View style={styles.container}>
-      <MenuHeader title="Sessions" />
+      <MenuHeader title={t("common.sessions.title")} />
       {isInitialLoad ? (
         <View style={styles.loadingContainer}>
           <LoadingSpinner size="large" color={theme.colors.foregroundMuted} />
@@ -73,9 +75,9 @@ function SessionsScreenContent({ serverId }: { serverId: string }) {
       ) : null}
       {!isInitialLoad && sortedAgents.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No sessions yet</Text>
+          <Text style={styles.emptyText}>{t("common.sessions.empty")}</Text>
           <Button variant="ghost" leftIcon={ChevronLeft} onPress={handleBack}>
-            Back
+            {t("common.action.back")}
           </Button>
         </View>
       ) : null}

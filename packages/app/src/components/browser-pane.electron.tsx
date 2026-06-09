@@ -10,6 +10,8 @@ import {
 import { Pressable, Text, TextInput, View } from "react-native";
 import { ArrowLeft, ArrowRight, MousePointer2, PencilRuler, RotateCw } from "lucide-react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import {
   buildWorkspaceAttachmentScopeKey,
   useWorkspaceAttachments,
@@ -69,7 +71,7 @@ function getWebviewLoadErrorMessage(event: Event): string | null {
   const description =
     typeof details.errorDescription === "string" && details.errorDescription.trim()
       ? details.errorDescription.trim()
-      : "Failed to load page";
+      : i18n.t("desktop.browser.failedToLoad");
   const url =
     typeof details.validatedURL === "string" && details.validatedURL.trim()
       ? details.validatedURL.trim()
@@ -91,7 +93,7 @@ function getLoadUrlRejectionMessage(error: unknown): string | null {
     }
     return error.trim();
   }
-  return "Failed to load page";
+  return i18n.t("desktop.browser.failedToLoad");
 }
 
 function getUnsafeNavigationMessage(url: string): string | null {
@@ -100,9 +102,9 @@ function getUnsafeNavigationMessage(url: string): string | null {
     if (ALLOWED_BROWSER_PROTOCOLS.has(parsed.protocol) || parsed.href === "about:blank") {
       return null;
     }
-    return `Blocked unsupported browser URL: ${parsed.protocol}`;
+    return i18n.t("desktop.browser.blockedUnsupportedUrl", { protocol: parsed.protocol });
   } catch {
-    return "Invalid browser URL";
+    return i18n.t("desktop.browser.invalidUrl");
   }
 }
 
@@ -283,6 +285,7 @@ export function BrowserPane({
   onFocusPane?: () => void;
 }) {
   const { theme } = useUnistyles();
+  const { t } = useTranslation();
   const browser = useBrowserStore((state) => state.browsersById[browserId] ?? null);
   const updateBrowser = useBrowserStore((state) => state.updateBrowser);
   const webviewRef = useRef<ElectronWebview | null>(null);
@@ -929,10 +932,8 @@ export function BrowserPane({
   if (!isElectronRuntime()) {
     return (
       <View style={styles.unavailableState}>
-        <Text style={titleStyle}>Browser is desktop-only</Text>
-        <Text style={subtitleStyle}>
-          Open this workspace in Electron to use the built-in browser.
-        </Text>
+        <Text style={titleStyle}>{t("desktop.browser.desktopOnlyTitle")}</Text>
+        <Text style={subtitleStyle}>{t("desktop.browser.desktopOnlySubtitle")}</Text>
       </View>
     );
   }
@@ -943,7 +944,7 @@ export function BrowserPane({
         <View style={styles.chromeLeft}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Back"
+            accessibilityLabel={t("common.action.back")}
             disabled={!browser?.canGoBack}
             onPress={handleBack}
             style={backIconButtonStyle}
@@ -952,7 +953,7 @@ export function BrowserPane({
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Forward"
+            accessibilityLabel={t("desktop.browser.forward")}
             disabled={!browser?.canGoForward}
             onPress={handleForward}
             style={forwardIconButtonStyle}
@@ -961,7 +962,9 @@ export function BrowserPane({
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={browser?.isLoading ? "Stop loading" : "Refresh"}
+            accessibilityLabel={
+              browser?.isLoading ? t("desktop.browser.stopLoading") : t("common.action.refresh")
+            }
             onPress={handleRefresh}
             style={baseIconButtonStyle}
           >
@@ -970,13 +973,13 @@ export function BrowserPane({
         </View>
         <View style={styles.urlBarWrap}>
           <TextInput
-            accessibilityLabel="Browser URL"
+            accessibilityLabel={t("desktop.browser.urlLabel")}
             autoCapitalize="none"
             autoCorrect={false}
             onChangeText={setDraftUrl}
             onFocus={handleUrlBarFocus}
             onSubmitEditing={handleNavigateDraftUrl}
-            placeholder="Enter URL"
+            placeholder={t("desktop.browser.urlPlaceholder")}
             placeholderTextColor={theme.colors.foregroundMuted}
             ref={urlInputRef}
             style={urlInputStyle}
@@ -988,7 +991,7 @@ export function BrowserPane({
             <>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Open browser dev tools"
+                accessibilityLabel={t("desktop.browser.openDevTools")}
                 onPress={handleOpenDevTools}
                 style={baseIconButtonStyle}
               >
@@ -996,7 +999,11 @@ export function BrowserPane({
               </Pressable>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={selectorActive ? "Cancel element selector" : "Select element"}
+                accessibilityLabel={
+                  selectorActive
+                    ? t("desktop.browser.cancelElementSelector")
+                    : t("desktop.browser.selectElement")
+                }
                 onPress={handleToggleElementSelector}
                 style={selectorIconButtonStyle}
               >

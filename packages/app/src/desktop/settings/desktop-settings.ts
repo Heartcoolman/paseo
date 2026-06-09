@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getIsElectron } from "@/constants/platform";
 import { invokeDesktopCommand } from "@/desktop/electron/invoke";
@@ -38,6 +39,7 @@ export function useDesktopSettings(): {
   error: unknown;
   updateSettings: (updates: DesktopSettingsPatch) => Promise<void>;
 } {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const reportError = useDesktopIpcErrorReporter();
   const {
@@ -53,7 +55,7 @@ export function useDesktopSettings(): {
   });
   useDesktopIpcQueryErrorToast({
     error: loadError,
-    message: "Unable to load desktop settings.",
+    message: t("desktop.settings.loadError"),
     logLabel: "[DesktopSettings] Failed to load settings",
   });
 
@@ -83,7 +85,7 @@ export function useDesktopSettings(): {
       }
       reportError({
         error: saveError,
-        message: "Unable to save desktop settings.",
+        message: t("desktop.settings.saveError"),
         logLabel: "[DesktopSettings] Failed to save settings",
       });
     },

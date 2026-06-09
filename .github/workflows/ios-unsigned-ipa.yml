@@ -1,0 +1,56 @@
+name: iOS Unsigned IPA
+
+# Builds an UNSIGNED iOS .ipa on a macOS runner for self-signing / sideloading.
+# Output is uploaded as a build artifact. No Apple account or local Xcode needed.
+
+on:
+  push:
+    branches: [ipad-build]
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: "App variant (production | development)"
+        default: "production"
+        type: string
+      bundle_id:
+        description: "Optional CFBundleIdentifier override (match your signing profile)"
+        required: false
+        type: string
+
+concurrency:
+  group: ios-unsigned-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The onnxruntime-node postinstall pulls a large NuGet download that makes
+  # npm ci flaky; CI does not need it. Mirrors ci.yml.
+  ONNXRUNTIME_NODE_INSTALL: skip
+
+jobs:
+  build-unsigned-ipa:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build unsigned IPA
+        working-directory: packages/app
+        env:
+          APP_VARIANT: ${{ github.event.inputs.variant || 'production' }}
+          BUNDLE_ID: ${{ github.event.inputs.bundle_id || '' }}
+        run: bash scripts/build-unsigned-ipa.sh
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: paseo-ios-unsigned
+          path: packages/app/build-output/*.ipa
+          if-no-files-found: error
+          retention-days: 14

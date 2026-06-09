@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   Text,
@@ -122,11 +123,14 @@ export function Autocomplete({
   onSelect,
   isLoading = false,
   errorMessage,
-  loadingText = "Loading...",
-  emptyText = "No results found",
+  loadingText,
+  emptyText,
   maxHeight = 220,
 }: AutocompleteProps) {
   const { theme } = useUnistyles();
+  const { t } = useTranslation();
+  const resolvedLoadingText = loadingText ?? t("common.state.loading");
+  const resolvedEmptyText = emptyText ?? t("common.autocomplete.noResults");
   const scrollRef = useRef<ScrollView>(null);
   const rowLayoutsRef = useRef<Map<number, { top: number; height: number }>>(new Map());
   const viewportHeightRef = useRef(0);
@@ -213,7 +217,7 @@ export function Autocomplete({
     return (
       <View style={containerStyle}>
         <View style={styles.emptyItem}>
-          <Text style={styles.emptyText}>{loadingText}</Text>
+          <Text style={styles.emptyText}>{resolvedLoadingText}</Text>
         </View>
       </View>
     );
@@ -223,7 +227,9 @@ export function Autocomplete({
     return (
       <View style={containerStyle}>
         <View style={styles.emptyItem}>
-          <Text style={styles.emptyText}>Error: {errorMessage}</Text>
+          <Text style={styles.emptyText}>
+            {t("common.autocomplete.errorPrefix", { message: errorMessage })}
+          </Text>
         </View>
       </View>
     );
@@ -233,7 +239,7 @@ export function Autocomplete({
     return (
       <View style={containerStyle}>
         <View style={styles.emptyItem}>
-          <Text style={styles.emptyText}>{emptyText}</Text>
+          <Text style={styles.emptyText}>{resolvedEmptyText}</Text>
         </View>
       </View>
     );

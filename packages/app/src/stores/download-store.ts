@@ -6,6 +6,7 @@ import type { HostProfile } from "@/types/host-connection";
 import { buildDaemonWebSocketUrl } from "@/utils/daemon-endpoints";
 import { openExternalUrl } from "@/utils/open-external-url";
 import { isWeb } from "@/constants/platform";
+import i18n from "@/i18n";
 
 interface DownloadProgress {
   percent: number;
@@ -85,12 +86,12 @@ export const useDownloadStore = create<DownloadState>()((set, get) => ({
     try {
       const tokenResponse = await requestFileDownloadToken(path);
       if (tokenResponse.error || !tokenResponse.token) {
-        throw new Error(tokenResponse.error ?? "Failed to request download token.");
+        throw new Error(tokenResponse.error ?? i18n.t("common.download.tokenRequestFailed"));
       }
 
       const downloadTarget = resolveDaemonDownloadTarget(daemonProfile);
       if (!downloadTarget.baseUrl) {
-        throw new Error("Download host is unavailable.");
+        throw new Error(i18n.t("common.download.hostUnavailable"));
       }
 
       const resolvedFileName = tokenResponse.fileName ?? fileName;
@@ -140,7 +141,7 @@ export const useDownloadStore = create<DownloadState>()((set, get) => ({
 
       const result = await downloadResumable.downloadAsync();
       if (!result) {
-        throw new Error("Download was cancelled.");
+        throw new Error(i18n.t("common.download.cancelled"));
       }
 
       get().completeDownload(id);
@@ -148,11 +149,14 @@ export const useDownloadStore = create<DownloadState>()((set, get) => ({
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(result.uri, {
           mimeType: tokenResponse.mimeType ?? undefined,
-          dialogTitle: resolvedFileName ? `Share ${resolvedFileName}` : "Share file",
+          dialogTitle: resolvedFileName
+            ? i18n.t("common.download.shareNamed", { fileName: resolvedFileName })
+            : i18n.t("common.download.shareFile"),
         });
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to download file.";
+      const message =
+        error instanceof Error ? error.message : i18n.t("common.download.downloadFailed");
       if (isWeb) {
         console.warn("[DownloadStore] Download failed:", message);
         get().failDownload(id, message);
@@ -316,7 +320,7 @@ function triggerBrowserDownload(url: string, fileName: string) {
 function resolveDownloadTargetFile(fileName: string): FSFile {
   const directory = Paths.cache ?? Paths.document;
   if (!directory) {
-    throw new Error("No download directory available.");
+    throw new Error(i18n.t("common.download.noDirectory"));
   }
 
   const safeName = sanitizeDownloadFileName(fileName);

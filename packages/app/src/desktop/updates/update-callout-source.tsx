@@ -1,5 +1,6 @@
 import { Gift } from "lucide-react-native";
 import { type ReactNode, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useUnistyles } from "react-native-unistyles";
 import {
   type SidebarCalloutAction,
@@ -13,13 +14,14 @@ import {
 } from "@/desktop/updates/resolve-update-callout";
 import { useDesktopAppUpdater } from "@/desktop/updates/use-desktop-app-updater";
 import { useStableEvent } from "@/hooks/use-stable-event";
+import i18n from "@/i18n";
 import { openExternalUrl } from "@/utils/open-external-url";
 
 const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 const CHANGELOG_URL = "https://paseo.sh/changelog";
 
 function renderBody(body: UpdateCalloutBody): ReactNode {
-  if (body.kind === "installing") return "Installing and restarting...";
+  if (body.kind === "installing") return i18n.t("desktop.update.installing");
   if (body.kind === "error") return body.message;
   return <UpdateAvailableDescription versionLabel={body.versionLabel ?? undefined} />;
 }
@@ -120,15 +122,16 @@ export function UpdateCalloutSource() {
 }
 
 function UpdateAvailableDescription({ versionLabel }: { versionLabel?: string }) {
+  const { t } = useTranslation();
   return (
     <>
       <SidebarCalloutDescriptionText>
         {versionLabel
-          ? `${versionLabel} is ready to install.`
-          : "A new version is ready to install."}
+          ? t("desktop.update.versionReady", { versionLabel })
+          : t("desktop.update.newVersionReady")}
       </SidebarCalloutDescriptionText>
       <SidebarCalloutDescriptionText>
-        Upgrading the app will stop running agents and close terminal sessions.
+        {t("desktop.update.upgradeWarning")}
       </SidebarCalloutDescriptionText>
     </>
   );

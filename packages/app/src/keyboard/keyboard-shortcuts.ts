@@ -1,4 +1,5 @@
 import type { ShortcutKey } from "@/utils/format-shortcut";
+import i18n from "@/i18n";
 import type {
   KeyboardActionId,
   KeyboardFocusScope,
@@ -70,9 +71,10 @@ type ShortcutPayloadDef =
 interface ShortcutHelp {
   id: string;
   section: ShortcutSectionId;
-  label: string;
+  // Display label + note are localized at render time from `id` via
+  // getHelpLabel/getHelpNote; `note: true` marks rows that carry a note.
   keys: ShortcutKey[];
-  note?: string;
+  note?: true;
 }
 
 interface ShortcutBinding {
@@ -99,13 +101,32 @@ export interface ChordState {
 
 // --- Constants ---
 
-const SHORTCUT_HELP_SECTION_TITLES: Record<ShortcutSectionId, string> = {
-  navigation: "Navigation",
-  "tabs-panes": "Tabs & Panes",
-  projects: "Projects",
-  panels: "Panels",
-  "agent-input": "Agent Input",
+// Help labels/titles are localized live at call time (not frozen at module
+// load) so they track the active language. Translation keys derive from the
+// stable kebab-case `help.id` / section id via `kebabToCamel`.
+function kebabToCamel(value: string): string {
+  return value.replace(/-([a-z])/g, (_, char: string) => char.toUpperCase());
+}
+
+const SHORTCUT_HELP_SECTION_TITLE_KEYS: Record<ShortcutSectionId, string> = {
+  navigation: "navigation",
+  "tabs-panes": "tabsPanes",
+  projects: "projects",
+  panels: "panels",
+  "agent-input": "agentInput",
 };
+
+function getSectionTitle(sectionId: ShortcutSectionId): string {
+  return i18n.t(`shortcuts.section.${SHORTCUT_HELP_SECTION_TITLE_KEYS[sectionId]}`);
+}
+
+function getHelpLabel(helpId: string): string {
+  return i18n.t(`shortcuts.help.${kebabToCamel(helpId)}`);
+}
+
+function getHelpNote(helpId: string): string {
+  return i18n.t(`shortcuts.note.${kebabToCamel(helpId)}`);
+}
 
 // --- Binding definitions ---
 
@@ -119,7 +140,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "new-agent",
       section: "projects",
-      label: "Open project",
       keys: ["mod", "shift", "O"],
     },
   },
@@ -131,7 +151,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "new-agent",
       section: "projects",
-      label: "Open project",
       keys: ["mod", "shift", "O"],
     },
   },
@@ -145,7 +164,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "new-worktree",
       section: "projects",
-      label: "New worktree",
       keys: ["mod", "O"],
     },
   },
@@ -157,7 +175,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "new-worktree",
       section: "projects",
-      label: "New worktree",
       keys: ["mod", "O"],
     },
   },
@@ -171,7 +188,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "archive-worktree",
       section: "projects",
-      label: "Archive worktree",
       keys: ["mod", "shift", "Backspace"],
     },
   },
@@ -183,7 +199,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "archive-worktree",
       section: "projects",
-      label: "Archive worktree",
       keys: ["mod", "shift", "Backspace"],
     },
   },
@@ -197,7 +212,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-tab-new",
       section: "tabs-panes",
-      label: "New tab",
       keys: ["mod", "T"],
     },
   },
@@ -209,7 +223,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-tab-new",
       section: "tabs-panes",
-      label: "New tab",
       keys: ["mod", "T"],
     },
   },
@@ -221,7 +234,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-tab-close-current",
       section: "tabs-panes",
-      label: "Close current tab",
       keys: ["meta", "W"],
     },
   },
@@ -233,7 +245,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-tab-close-current",
       section: "tabs-panes",
-      label: "Close current tab",
       keys: ["ctrl", "W"],
     },
   },
@@ -245,7 +256,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-tab-close-current",
       section: "tabs-panes",
-      label: "Close current tab",
       keys: ["alt", "shift", "W"],
     },
   },
@@ -260,7 +270,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-jump-index",
       section: "navigation",
-      label: "Jump to workspace",
       keys: ["mod", "1-9"],
     },
   },
@@ -273,7 +282,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-jump-index",
       section: "navigation",
-      label: "Jump to workspace",
       keys: ["mod", "1-9"],
     },
   },
@@ -286,7 +294,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-jump-index",
       section: "navigation",
-      label: "Jump to workspace",
       keys: ["alt", "1-9"],
     },
   },
@@ -301,7 +308,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-tab-jump-index",
       section: "navigation",
-      label: "Jump to tab",
       keys: ["mod", "alt", "1-9"],
     },
   },
@@ -314,7 +320,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-tab-jump-index",
       section: "navigation",
-      label: "Jump to tab",
       keys: ["alt", "1-9"],
     },
   },
@@ -327,7 +332,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-tab-jump-index",
       section: "navigation",
-      label: "Jump to tab",
       keys: ["alt", "shift", "1-9"],
     },
   },
@@ -342,7 +346,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-prev",
       section: "navigation",
-      label: "Previous workspace",
       keys: ["mod", "["],
     },
   },
@@ -355,7 +358,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-prev",
       section: "navigation",
-      label: "Previous workspace",
       keys: ["mod", "["],
     },
   },
@@ -368,7 +370,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-next",
       section: "navigation",
-      label: "Next workspace",
       keys: ["mod", "]"],
     },
   },
@@ -381,7 +382,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-next",
       section: "navigation",
-      label: "Next workspace",
       keys: ["mod", "]"],
     },
   },
@@ -394,7 +394,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-prev",
       section: "navigation",
-      label: "Previous workspace",
       keys: ["alt", "["],
     },
   },
@@ -407,7 +406,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-next",
       section: "navigation",
-      label: "Next workspace",
       keys: ["alt", "]"],
     },
   },
@@ -422,7 +420,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-tab-prev",
       section: "navigation",
-      label: "Previous tab",
       keys: ["alt", "shift", "["],
     },
   },
@@ -435,7 +432,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-tab-next",
       section: "navigation",
-      label: "Next tab",
       keys: ["alt", "shift", "]"],
     },
   },
@@ -449,7 +445,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-pane-split-right",
       section: "tabs-panes",
-      label: "Split pane right",
       keys: ["mod", "\\"],
     },
   },
@@ -461,7 +456,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-pane-split-down",
       section: "tabs-panes",
-      label: "Split pane down",
       keys: ["mod", "shift", "\\"],
     },
   },
@@ -473,7 +467,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-pane-focus-left",
       section: "tabs-panes",
-      label: "Focus pane left",
       keys: ["mod", "shift", "Left"],
     },
   },
@@ -485,7 +478,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-pane-focus-right",
       section: "tabs-panes",
-      label: "Focus pane right",
       keys: ["mod", "shift", "Right"],
     },
   },
@@ -497,7 +489,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-pane-focus-up",
       section: "tabs-panes",
-      label: "Focus pane up",
       keys: ["mod", "shift", "Up"],
     },
   },
@@ -509,7 +500,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-pane-focus-down",
       section: "tabs-panes",
-      label: "Focus pane down",
       keys: ["mod", "shift", "Down"],
     },
   },
@@ -521,7 +511,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-pane-move-tab-left",
       section: "tabs-panes",
-      label: "Move tab left",
       keys: ["mod", "shift", "alt", "Left"],
     },
   },
@@ -533,7 +522,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-pane-move-tab-right",
       section: "tabs-panes",
-      label: "Move tab right",
       keys: ["mod", "shift", "alt", "Right"],
     },
   },
@@ -545,7 +533,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-pane-move-tab-up",
       section: "tabs-panes",
-      label: "Move tab up",
       keys: ["mod", "shift", "alt", "Up"],
     },
   },
@@ -557,7 +544,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-pane-move-tab-down",
       section: "tabs-panes",
-      label: "Move tab down",
       keys: ["mod", "shift", "alt", "Down"],
     },
   },
@@ -569,7 +555,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-pane-close",
       section: "tabs-panes",
-      label: "Close pane",
       keys: ["mod", "shift", "W"],
     },
   },
@@ -583,7 +568,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-terminal-new",
       section: "panels",
-      label: "New terminal",
       keys: ["mod", "shift", "T"],
     },
   },
@@ -595,7 +579,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "workspace-terminal-new",
       section: "panels",
-      label: "New terminal",
       keys: ["mod", "shift", "T"],
     },
   },
@@ -609,7 +592,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-command-center",
       section: "panels",
-      label: "Toggle command center",
       keys: ["mod", "K"],
     },
   },
@@ -621,7 +603,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-command-center",
       section: "panels",
-      label: "Toggle command center",
       keys: ["mod", "K"],
     },
   },
@@ -636,9 +617,8 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "show-shortcuts",
       section: "panels",
-      label: "Show keyboard shortcuts",
       keys: ["?"],
-      note: "Available when focus is not in a text field or terminal.",
+      note: true,
     },
   },
 
@@ -651,7 +631,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-left-sidebar",
       section: "panels",
-      label: "Toggle left sidebar",
       keys: ["mod", "B"],
     },
   },
@@ -663,7 +642,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-left-sidebar",
       section: "panels",
-      label: "Toggle left sidebar",
       keys: ["mod", "B"],
     },
   },
@@ -675,7 +653,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-right-sidebar",
       section: "panels",
-      label: "Toggle right sidebar",
       keys: ["mod", "E"],
     },
   },
@@ -687,7 +664,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-right-sidebar",
       section: "panels",
-      label: "Toggle right sidebar",
       keys: ["mod", "E"],
     },
   },
@@ -707,7 +683,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-both-sidebars",
       section: "panels",
-      label: "Toggle both sidebars",
       keys: ["mod", "."],
     },
   },
@@ -719,7 +694,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-both-sidebars",
       section: "panels",
-      label: "Toggle both sidebars",
       keys: ["mod", "."],
     },
   },
@@ -733,7 +707,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-settings",
       section: "panels",
-      label: "Toggle settings",
       keys: ["mod", ","],
     },
   },
@@ -745,7 +718,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-settings",
       section: "panels",
-      label: "Toggle settings",
       keys: ["mod", ","],
     },
   },
@@ -759,7 +731,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-focus",
       section: "panels",
-      label: "Toggle focus mode",
       keys: ["mod", "shift", "F"],
     },
   },
@@ -771,7 +742,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "toggle-focus",
       section: "panels",
-      label: "Toggle focus mode",
       keys: ["mod", "shift", "F"],
     },
   },
@@ -785,7 +755,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "cycle-theme",
       section: "panels",
-      label: "Cycle theme",
       keys: ["mod", "alt", "T"],
     },
   },
@@ -797,7 +766,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "cycle-theme",
       section: "panels",
-      label: "Cycle theme",
       keys: ["mod", "alt", "T"],
     },
   },
@@ -812,7 +780,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "focus-message-input",
       section: "agent-input",
-      label: "Focus message input",
       keys: ["mod", "L"],
     },
   },
@@ -825,7 +792,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "focus-message-input",
       section: "agent-input",
-      label: "Focus message input",
       keys: ["mod", "L"],
     },
   },
@@ -839,7 +805,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "voice-toggle",
       section: "agent-input",
-      label: "Toggle voice mode",
       keys: ["mod", "shift", "D"],
     },
   },
@@ -853,7 +818,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "voice-toggle",
       section: "agent-input",
-      label: "Toggle voice mode",
       keys: ["mod", "shift", "D"],
     },
   },
@@ -866,7 +830,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "dictation-toggle",
       section: "agent-input",
-      label: "Start/stop dictation",
       keys: ["mod", "D"],
     },
   },
@@ -879,7 +842,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "dictation-toggle",
       section: "agent-input",
-      label: "Start/stop dictation",
       keys: ["mod", "D"],
     },
   },
@@ -893,7 +855,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "agent-interrupt",
       section: "agent-input",
-      label: "Interrupt agent",
       keys: ["Esc"],
     },
   },
@@ -908,7 +869,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "message-input-send",
       section: "agent-input",
-      label: "Send message",
       keys: ["Enter"],
     },
   },
@@ -923,7 +883,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "message-input-queue",
       section: "agent-input",
-      label: "Queue message",
       keys: ["mod", "Enter"],
     },
   },
@@ -938,7 +897,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "message-input-queue",
       section: "agent-input",
-      label: "Queue message",
       keys: ["mod", "Enter"],
     },
   },
@@ -961,7 +919,6 @@ const SHORTCUT_BINDINGS: readonly ShortcutBinding[] = [
     help: {
       id: "voice-mute-toggle",
       section: "agent-input",
-      label: "Mute/unmute voice mode",
       keys: ["Space"],
     },
   },
@@ -1342,9 +1299,9 @@ export function buildKeyboardShortcutHelpSections(
     }
     rows.push({
       id: help.id,
-      label: help.label,
+      label: getHelpLabel(help.id),
       keys: help.keys,
-      ...(help.note ? { note: help.note } : {}),
+      ...(help.note ? { note: getHelpNote(help.id) } : {}),
     });
   }
 
@@ -1364,7 +1321,7 @@ export function buildKeyboardShortcutHelpSections(
     return [
       {
         id: sectionId,
-        title: SHORTCUT_HELP_SECTION_TITLES[sectionId],
+        title: getSectionTitle(sectionId),
         rows,
       },
     ];

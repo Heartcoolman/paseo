@@ -1,5 +1,6 @@
 import { forwardRef, useCallback, useEffect, useMemo } from "react";
 import type { ReactNode, Ref } from "react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import type { TextInputProps } from "react-native";
@@ -303,6 +304,7 @@ export function SheetHeaderView({
   showCloseButton?: boolean;
   testID?: string;
 }) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const titleStyle = useMemo(
     () => [styles.title, { color: theme.colors.foreground }],
@@ -327,7 +329,7 @@ export function SheetHeaderView({
             hitSlop={8}
             style={styles.headerBackButton}
             accessibilityRole="button"
-            accessibilityLabel={back?.accessibilityLabel ?? back?.label ?? "Back"}
+            accessibilityLabel={back?.accessibilityLabel ?? back?.label ?? t("common.action.back")}
             testID="sheet-header-back"
           >
             {({ pressed }) => (
@@ -347,7 +349,11 @@ export function SheetHeaderView({
         </View>
         {header.actions ? <View style={styles.headerActions}>{header.actions}</View> : null}
         {showCloseButton ? (
-          <Pressable accessibilityLabel="Close" style={styles.closeButton} onPress={onClose}>
+          <Pressable
+            accessibilityLabel={t("common.action.close")}
+            style={styles.closeButton}
+            onPress={onClose}
+          >
             {({ pressed }) => (
               <X
                 size={16}
@@ -363,7 +369,7 @@ export function SheetHeaderView({
           <AdaptiveTextInput
             // @ts-expect-error - outlineStyle is web-only
             style={SEARCH_INPUT_STYLE}
-            placeholder={search.placeholder ?? "Search"}
+            placeholder={search.placeholder ?? t("common.action.search")}
             resetKey={search.resetKey}
             onChangeText={handleSearchChange}
             autoCapitalize="none"
@@ -378,6 +384,7 @@ export function SheetHeaderView({
 }
 
 export function InlineHeaderView({ header }: { header: SheetHeader }) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const back = header.back;
   const handleBackPress = back?.onPress;
@@ -393,7 +400,9 @@ export function InlineHeaderView({ header }: { header: SheetHeader }) {
               hitSlop={8}
               style={styles.headerBackButton}
               accessibilityRole="button"
-              accessibilityLabel={back?.accessibilityLabel ?? back?.label ?? "Back"}
+              accessibilityLabel={
+                back?.accessibilityLabel ?? back?.label ?? t("common.action.back")
+              }
               testID="sheet-header-back"
             >
               {({ pressed }) => (
@@ -417,7 +426,7 @@ export function InlineHeaderView({ header }: { header: SheetHeader }) {
           <AdaptiveTextInput
             // @ts-expect-error - outlineStyle is web-only
             style={SEARCH_INPUT_STYLE}
-            placeholder={header.search.placeholder ?? "Search"}
+            placeholder={header.search.placeholder ?? t("common.action.search")}
             resetKey={header.search.resetKey}
             onChangeText={header.search.onChange}
             autoCapitalize="none"
@@ -461,6 +470,7 @@ export function AdaptiveModalSheet({
   scrollable = true,
   presentation,
 }: AdaptiveModalSheetProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const isMobile = useIsCompactFormFactor();
   const insets = useSafeAreaInsets();
@@ -585,7 +595,11 @@ export function AdaptiveModalSheet({
 
   const desktopContent = (
     <View style={styles.desktopOverlay} testID={testID}>
-      <Pressable accessibilityLabel="Dismiss" style={ABSOLUTE_FILL_STYLE} onPress={onClose} />
+      <Pressable
+        accessibilityLabel={t("common.action.dismiss")}
+        style={ABSOLUTE_FILL_STYLE}
+        onPress={onClose}
+      />
       <View style={desktopCardStyle}>
         {onFilesDropped ? (
           <FileDropZone onFilesDropped={onFilesDropped}>{cardInner}</FileDropZone>

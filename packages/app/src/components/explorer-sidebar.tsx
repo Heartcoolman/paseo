@@ -6,6 +6,7 @@ import {
   useWindowDimensions,
   StyleSheet as RNStyleSheet,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useIsFocused } from "@react-navigation/native";
 import Animated, { useAnimatedStyle, useSharedValue, runOnJS } from "react-native-reanimated";
@@ -422,6 +423,7 @@ function SidebarContent({
   isOpen,
   onOpenFile,
 }: SidebarContentProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const padding = useWindowControlsPadding("explorerSidebar");
   const canQueryPullRequest = isGit && Boolean(workspaceRoot);
@@ -453,7 +455,7 @@ function SidebarContent({
             <ExplorerTabButton
               tab="changes"
               active={resolvedTab === "changes"}
-              label="Changes"
+              label={t("common.explorer.changesTab")}
               onTabPress={onTabPress}
               testID="explorer-tab-changes"
             />
@@ -461,7 +463,7 @@ function SidebarContent({
           <ExplorerTabButton
             tab="files"
             active={resolvedTab === "files"}
-            label="Files"
+            label={t("common.explorer.filesTab")}
             onTabPress={onTabPress}
             testID="explorer-tab-files"
           />

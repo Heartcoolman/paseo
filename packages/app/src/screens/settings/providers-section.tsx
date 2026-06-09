@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, Pressable, Text, View, type PressableStateCallbackType } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import i18n from "@/i18n";
 import { settingsStyles } from "@/styles/settings";
 import { useHostRuntimeIsConnected } from "@/runtime/host-runtime";
 import { useProvidersSnapshot } from "@/hooks/use-providers-snapshot";
@@ -30,17 +32,24 @@ interface ProviderStatus {
 }
 
 function getProviderStatus(status: string, enabled: boolean, modelCount: number): ProviderStatus {
-  if (!enabled) return { tone: "muted", label: "Disabled", modelCount: null };
-  if (status === "loading") return { tone: "loading", label: "Loading", modelCount: null };
-  if (status === "error") return { tone: "danger", label: "Error", modelCount: null };
+  if (!enabled)
+    return { tone: "muted", label: i18n.t("settings.providers.statusDisabled"), modelCount: null };
+  if (status === "loading")
+    return { tone: "loading", label: i18n.t("settings.providers.statusLoading"), modelCount: null };
+  if (status === "error")
+    return { tone: "danger", label: i18n.t("settings.providers.statusError"), modelCount: null };
   if (status === "ready") {
     return {
       tone: "success",
-      label: "Available",
+      label: i18n.t("settings.providers.statusAvailable"),
       modelCount: modelCount > 0 ? modelCount : null,
     };
   }
-  return { tone: "warning", label: "Not installed", modelCount: null };
+  return {
+    tone: "warning",
+    label: i18n.t("settings.providers.statusNotInstalled"),
+    modelCount: null,
+  };
 }
 
 interface ProviderRowProps {
@@ -62,6 +71,7 @@ function ProviderRow({
   onPress,
   onToggleEnabled,
 }: ProviderRowProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const ProviderIcon = getProviderIcon(def.id);
   const providerError =
@@ -99,7 +109,7 @@ function ProviderRow({
       style={rowStyle}
       onPress={handlePress}
       accessibilityRole="button"
-      accessibilityLabel={`${def.label} provider details`}
+      accessibilityLabel={t("settings.providers.providerDetailsA11y", { provider: def.label })}
     >
       {({ hovered }: PressableStateCallbackType & { hovered?: boolean }) => (
         <>
@@ -128,7 +138,7 @@ function ProviderRow({
             value={enabled}
             onValueChange={handleToggleValueChange}
             disabled={isToggling}
-            accessibilityLabel={`Enable ${def.label}`}
+            accessibilityLabel={t("settings.providers.enableProviderA11y", { provider: def.label })}
           />
         </>
       )}
@@ -150,6 +160,7 @@ function getDotColor(tone: StatusTone, theme: ReturnType<typeof useUnistyles>["t
 }
 
 function StatusIndicator({ status }: { status: ProviderStatus }) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const dotStyle = useMemo(
     () => [styles.statusDot, { backgroundColor: getDotColor(status.tone, theme) }],
@@ -168,7 +179,7 @@ function StatusIndicator({ status }: { status: ProviderStatus }) {
         <>
           <Text style={styles.separator}>·</Text>
           <Text style={styles.statusLabel}>
-            {status.modelCount === 1 ? "1 model" : `${status.modelCount} models`}
+            {t("settings.providers.modelCount", { count: status.modelCount })}
           </Text>
         </>
       ) : null}
@@ -181,6 +192,7 @@ export interface ProvidersSectionProps {
 }
 
 export function ProvidersSection({ serverId }: ProvidersSectionProps) {
+  const { t } = useTranslation();
   const isConnected = useHostRuntimeIsConnected(serverId);
   const { entries, isLoading, refresh } = useProvidersSnapshot(serverId);
   const { patchConfig } = useDaemonConfig(serverId);
@@ -205,14 +217,14 @@ export function ProvidersSection({ serverId }: ProvidersSectionProps) {
         await patchConfig({ providers: { [providerId]: { enabled } } });
       } catch (error) {
         Alert.alert(
-          "Unable to update provider",
+          t("settings.providers.updateError"),
           error instanceof Error ? error.message : String(error),
         );
       } finally {
         setPendingProviderId((current) => (current === providerId ? null : current));
       }
     },
-    [patchConfig],
+    [patchConfig, t],
   );
 
   const handleInstall = useCallback(
@@ -224,31 +236,31 @@ export function ProvidersSection({ serverId }: ProvidersSectionProps) {
         await refresh([entry.id]);
       } catch (error) {
         Alert.alert(
-          "Unable to add provider",
+          t("settings.providers.addError"),
           error instanceof Error ? error.message : String(error),
         );
       } finally {
         setInstallingProviderId((current) => (current === entry.id ? null : current));
       }
     },
-    [installingProviderId, patchConfig, refresh],
+    [installingProviderId, patchConfig, refresh, t],
   );
 
   return (
     <>
       <SettingsSection
-        title="Providers"
+        title={t("settings.providers.title")}
         testID="host-page-providers-card"
         style={styles.sectionSpacing}
       >
         {!hasServer || !isConnected ? (
           <View style={EMPTY_CARD_STYLE}>
-            <Text style={styles.emptyText}>Connect to this host to see providers</Text>
+            <Text style={styles.emptyText}>{t("settings.providers.connectToHost")}</Text>
           </View>
         ) : null}
         {hasServer && isConnected && isLoading ? (
           <View style={EMPTY_CARD_STYLE}>
-            <Text style={styles.emptyText}>Loading...</Text>
+            <Text style={styles.emptyText}>{t("settings.providers.loading")}</Text>
           </View>
         ) : null}
         {hasServer && isConnected && !isLoading && providerDefinitions.length > 0 ? (
@@ -275,7 +287,7 @@ export function ProvidersSection({ serverId }: ProvidersSectionProps) {
 
       {hasServer && isConnected ? (
         <SettingsSection
-          title="Add provider"
+          title={t("settings.providers.addProvider")}
           testID="host-page-add-provider-card"
           style={styles.addProviderSection}
         >

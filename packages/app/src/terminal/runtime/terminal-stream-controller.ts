@@ -1,4 +1,5 @@
 import type { SubscribeTerminalRequest, TerminalState } from "@getpaseo/protocol/messages";
+import i18n from "@/i18n";
 import type { TerminalOutputData } from "./terminal-emulator-runtime";
 
 export interface TerminalStreamControllerClient {
@@ -44,8 +45,6 @@ export interface TerminalStreamControllerOptions {
   getRestoreOptions?: () => SubscribeTerminalRequest["restore"] | undefined;
   onStatusChange?: (status: TerminalStreamControllerStatus) => void;
 }
-
-const TERMINAL_EXITED_ERROR = "Terminal exited";
 
 export class TerminalStreamController {
   private readonly unsubscribeStreamEvents: () => void;
@@ -127,7 +126,8 @@ export class TerminalStreamController {
         this.options.onStatusChange?.({
           terminalId: nextTerminalId,
           isAttaching: false,
-          error: error instanceof Error ? error.message : "Unable to subscribe to terminal",
+          error:
+            error instanceof Error ? error.message : i18n.t("common.terminal.unableToSubscribe"),
         });
       });
   }
@@ -140,7 +140,7 @@ export class TerminalStreamController {
     this.options.onStatusChange?.({
       terminalId: input.terminalId,
       isAttaching: false,
-      error: TERMINAL_EXITED_ERROR,
+      error: i18n.t("common.terminal.exited"),
     });
   }
 

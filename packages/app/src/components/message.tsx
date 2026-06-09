@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { MarkdownParagraphView, MarkdownTextSpan } from "@/components/markdown-text";
 import { AppearanceStyleBoundary } from "@/components/appearance-style-boundary";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import * as React from "react";
 import {
   useState,
@@ -452,14 +454,14 @@ function getUserMessageAttachmentLabel(attachment: AgentAttachment): string {
   switch (attachment.type) {
     case "review": {
       const count = attachment.comments.length;
-      return count === 1 ? "Review · 1 comment" : `Review · ${count} comments`;
+      return i18n.t("common.message.reviewCommentCount", { count });
     }
     case "github_pr":
       return `PR #${attachment.number}`;
     case "github_issue":
       return `Issue #${attachment.number}`;
     case "text":
-      return attachment.title ?? "Text attachment";
+      return attachment.title ?? i18n.t("common.message.textAttachment");
     default:
       return "";
   }
@@ -479,6 +481,7 @@ export const UserMessage = memo(function UserMessage({
   isLastInGroup = true,
   disableOuterSpacing,
 }: UserMessageProps) {
+  const { t } = useTranslation();
   const isCompact = useIsCompactFormFactor();
   const [isHovered, setIsHovered] = useState(false);
   const resolvedDisableOuterSpacing = useDisableOuterSpacing(disableOuterSpacing);
@@ -588,7 +591,7 @@ export const UserMessage = memo(function UserMessage({
             <TurnCopyButton
               getContent={getMessageContent}
               containerStyle={userMessageStylesheet.copyButton}
-              accessibilityLabel="Copy message"
+              accessibilityLabel={t("common.message.copyMessage")}
             />
           </View>
         ) : null}
@@ -646,6 +649,7 @@ export const AssistantTurnFooter = memo(function AssistantTurnFooter({
   completedAt,
   durationMs,
 }: AssistantTurnFooterProps) {
+  const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
   const [pressedReveal, setPressedReveal] = useState(false);
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -660,8 +664,11 @@ export const AssistantTurnFooter = memo(function AssistantTurnFooter({
   }, []);
 
   const durationLabel = useMemo(
-    () => (durationMs !== undefined ? `Worked for ${formatDuration(durationMs)}` : ""),
-    [durationMs],
+    () =>
+      durationMs !== undefined
+        ? t("common.message.workedFor", { duration: formatDuration(durationMs) })
+        : "",
+    [durationMs, t],
   );
   const timestampLabel = useMemo(
     () => (completedAt ? formatMessageTimestamp(completedAt) : ""),
@@ -697,7 +704,14 @@ export const AssistantTurnFooter = memo(function AssistantTurnFooter({
           onHoverIn={handleHoverIn}
           onHoverOut={handleHoverOut}
           accessibilityRole={canSwap ? "button" : undefined}
-          accessibilityLabel={canSwap ? `${durationLabel}, ended ${timestampLabel}` : durationLabel}
+          accessibilityLabel={
+            canSwap
+              ? t("common.message.turnFooterEnded", {
+                  duration: durationLabel,
+                  timestamp: timestampLabel,
+                })
+              : durationLabel
+          }
         >
           <View style={assistantTurnFooterStylesheet.labelWrapper}>
             {/* Sizer reserves space for whichever label is longer so the
@@ -812,6 +826,7 @@ const AssistantMarkdownResolvedImage = memo(function AssistantMarkdownResolvedIm
   workspaceRoot?: string;
   serverId?: string;
 }) {
+  const { t } = useTranslation();
   const cachedMetadata = useMemo(
     () => getAssistantImageMetadata({ source, workspaceRoot, serverId }),
     [serverId, source, workspaceRoot],
@@ -887,7 +902,9 @@ const AssistantMarkdownResolvedImage = memo(function AssistantMarkdownResolvedIm
         <View style={stateSurfaceStyle}>
           {loadState.status === "loading" ? <ActivityIndicator size="small" /> : null}
           {loadState.status === "error" ? (
-            <Text style={assistantMessageStylesheet.imageErrorText}>Image unavailable</Text>
+            <Text style={assistantMessageStylesheet.imageErrorText}>
+              {t("common.message.imageUnavailable")}
+            </Text>
           ) : null}
         </View>
       </View>
@@ -1038,7 +1055,7 @@ function AssistantMarkdownImage({
 function resolveAssistantImageErrorText(fileError: unknown, dataError: unknown): string {
   if (fileError instanceof Error) return fileError.message;
   if (dataError instanceof Error) return dataError.message;
-  return "Unable to load image preview.";
+  return i18n.t("common.message.imagePreviewLoadFailed");
 }
 
 function getInlineCodeAutoLinkUrl(
@@ -1144,6 +1161,7 @@ export const TurnCopyButton = memo(function TurnCopyButton({
   accessibilityLabel,
   copiedAccessibilityLabel,
 }: TurnCopyButtonProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -1185,7 +1203,9 @@ export const TurnCopyButton = memo(function TurnCopyButton({
       style={pressableStyle}
       accessibilityRole="button"
       accessibilityLabel={
-        copied ? (copiedAccessibilityLabel ?? "Copied") : (accessibilityLabel ?? "Copy turn")
+        copied
+          ? (copiedAccessibilityLabel ?? t("common.message.copied"))
+          : (accessibilityLabel ?? t("common.message.copyTurn"))
       }
     >
       {({ hovered }) => {
@@ -1966,6 +1986,7 @@ export const SpeakMessage = memo(function SpeakMessage({
   timestamp: _timestamp,
   disableOuterSpacing,
 }: SpeakMessageProps) {
+  const { t } = useTranslation();
   const resolvedDisableOuterSpacing = useDisableOuterSpacing(disableOuterSpacing);
   const containerStyle = useMemo(
     () => [
@@ -1979,7 +2000,7 @@ export const SpeakMessage = memo(function SpeakMessage({
     <View testID="speak-message" style={containerStyle}>
       <View style={speakMessageStylesheet.header}>
         <ThemedMicVocal size={12} uniProps={foregroundMutedColorMapping} />
-        <Text style={speakMessageStylesheet.headerLabel}>Spoke</Text>
+        <Text style={speakMessageStylesheet.headerLabel}>{t("common.message.spoke")}</Text>
       </View>
       <Text style={speakMessageStylesheet.text}>{message}</Text>
     </View>
@@ -2080,6 +2101,7 @@ export const ActivityLog = memo(function ActivityLog({
   onArtifactClick,
   disableOuterSpacing,
 }: ActivityLogProps) {
+  const { t } = useTranslation();
   const resolvedDisableOuterSpacing = useDisableOuterSpacing(disableOuterSpacing);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -2149,7 +2171,7 @@ export const ActivityLog = memo(function ActivityLog({
             </Text>
             {metadata && (
               <View style={activityLogStylesheet.detailsRow}>
-                <Text style={activityLogStylesheet.detailsText}>Details</Text>
+                <Text style={activityLogStylesheet.detailsText}>{t("common.message.details")}</Text>
                 {isExpanded ? (
                   <ChevronDown size={12} color="#71717a" />
                 ) : (
@@ -2306,6 +2328,7 @@ export const TodoListCard = memo(function TodoListCard({
   items,
   disableOuterSpacing,
 }: TodoListCardProps) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const nextTask = useMemo(() => items.find((item) => !item.completed)?.text, [items]);
@@ -2319,7 +2342,7 @@ export const TodoListCard = memo(function TodoListCard({
       <View style={todoListCardStylesheet.detailsWrapper}>
         <View style={todoListCardStylesheet.list}>
           {items.length === 0 ? (
-            <Text style={todoListCardStylesheet.emptyText}>No tasks yet.</Text>
+            <Text style={todoListCardStylesheet.emptyText}>{t("common.message.noTasksYet")}</Text>
           ) : (
             items.map((item) => (
               <TodoListItemRow key={item.text} text={item.text} completed={item.completed} />
@@ -2328,11 +2351,11 @@ export const TodoListCard = memo(function TodoListCard({
         </View>
       </View>
     );
-  }, [items]);
+  }, [items, t]);
 
   return (
     <ExpandableBadge
-      label="Tasks"
+      label={t("common.message.tasks")}
       secondaryLabel={nextTask}
       icon={CheckSquare}
       isExpanded={isExpanded}
@@ -2475,6 +2498,7 @@ function ExpandableBadgeLabelRow({
   onOpenFileHoverIn,
   onOpenFileHoverOut,
 }: ExpandableBadgeLabelRowProps) {
+  const { t } = useTranslation();
   return (
     <View
       style={expandableBadgeStylesheet.labelRow}
@@ -2499,7 +2523,7 @@ function ExpandableBadgeLabelRow({
           onHoverIn={onOpenFileHoverIn}
           onHoverOut={onOpenFileHoverOut}
           accessibilityRole="button"
-          accessibilityLabel="Open file"
+          accessibilityLabel={t("common.message.openFile")}
           testID="tool-call-open-file"
           style={expandableBadgeStylesheet.openFileButton}
           hitSlop={6}
@@ -3169,7 +3193,6 @@ export const ToolCall = memo(function ToolCall({
   if (presentation.isPlan && effectiveDetail?.type === "plan") {
     return (
       <PlanCard
-        title="Plan"
         text={effectiveDetail.text}
         testID="timeline-plan-card"
         disableOuterSpacing={disableOuterSpacing}

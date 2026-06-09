@@ -5,6 +5,7 @@ import type { ComboboxOption } from "@/components/ui/combobox";
 import type { ToastApi } from "@/components/toast-host";
 import { invalidateCheckoutGitQueriesForClient } from "@/git/query-keys";
 import { confirmDialog } from "@/utils/confirm-dialog";
+import i18n from "@/i18n";
 
 interface UseBranchSwitcherInput {
   client: DaemonClient | null;
@@ -85,18 +86,17 @@ export function useBranchSwitcher({
         const targetStash = stashPayload.entries.find((e) => e.branch === branchId);
         if (!targetStash) return;
         const shouldRestore = await confirmDialog({
-          title: "Restore stashed changes?",
-          message:
-            "This branch has stashed changes from a previous session. Would you like to restore them?",
-          confirmLabel: "Restore",
-          cancelLabel: "Later",
+          title: i18n.t("git.branchSwitcher.restoreStashTitle"),
+          message: i18n.t("git.branchSwitcher.restoreStashMessage"),
+          confirmLabel: i18n.t("git.branchSwitcher.restoreStashConfirm"),
+          cancelLabel: i18n.t("git.branchSwitcher.restoreStashCancel"),
         });
         if (!shouldRestore) return;
         const popPayload = await client.stashPop(normalizedWorkspaceId, targetStash.index);
         if (popPayload.error) {
           toast.error(popPayload.error.message);
         } else {
-          toast.show("Stashed changes restored");
+          toast.show(i18n.t("git.branchSwitcher.stashRestored"));
         }
         await invalidateStashAndCheckout();
       } catch {
@@ -110,10 +110,10 @@ export function useBranchSwitcher({
     async (branchId: string) => {
       if (!client) return;
       const shouldStash = await confirmDialog({
-        title: "Uncommitted changes",
-        message: "You have uncommitted changes. Stash them before switching branches?",
-        confirmLabel: "Stash & Switch",
-        cancelLabel: "Cancel",
+        title: i18n.t("git.branchSwitcher.uncommittedTitle"),
+        message: i18n.t("git.branchSwitcher.uncommittedMessage"),
+        confirmLabel: i18n.t("git.branchSwitcher.stashAndSwitch"),
+        cancelLabel: i18n.t("common.action.cancel"),
       });
       if (!shouldStash) return;
 
@@ -133,7 +133,7 @@ export function useBranchSwitcher({
         }
         await invalidateStashAndCheckout();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to stash changes");
+        toast.error(err instanceof Error ? err.message : i18n.t("git.branchSwitcher.stashFailed"));
       }
     },
     [client, currentBranchName, invalidateStashAndCheckout, normalizedWorkspaceId, toast],
@@ -160,7 +160,9 @@ export function useBranchSwitcher({
           await invalidateStashAndCheckout();
           await maybeRestoreStashForBranch(branchId);
         } catch (err) {
-          toast.error(err instanceof Error ? err.message : "Failed to switch branch");
+          toast.error(
+            err instanceof Error ? err.message : i18n.t("git.branchSwitcher.switchFailed"),
+          );
         }
       })();
     },

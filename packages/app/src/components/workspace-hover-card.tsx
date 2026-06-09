@@ -26,6 +26,7 @@ import { useHoverSafeZone } from "@/hooks/use-hover-safe-zone";
 import { useIsCompactFormFactor } from "@/constants/layout";
 import { FloatingSurface } from "@/components/ui/floating";
 import { isWeb } from "@/constants/platform";
+import { useTranslation } from "react-i18next";
 
 interface Rect {
   x: number;
@@ -212,6 +213,7 @@ function WorkspaceHoverCardContent({
   triggerRef: React.RefObject<View | null>;
   contentRef: React.RefObject<View | null>;
 }): ReactElement | null {
+  const { t } = useTranslation();
   const bottomSheetInternal = useBottomSheetModalInternal(true);
   const [triggerRect, setTriggerRect] = useState<Rect | null>(null);
   const [contentSize, setContentSize] = useState<{ width: number; height: number } | null>(null);
@@ -274,7 +276,7 @@ function WorkspaceHoverCardContent({
           collapsable={false}
           onLayout={handleLayout}
           accessibilityRole="menu"
-          accessibilityLabel="Workspace scripts"
+          accessibilityLabel={t("common.workspaceHoverCard.workspaceScripts")}
           testID="workspace-hover-card"
           style={styles.card}
           frameStyle={frameStyle}
@@ -373,6 +375,7 @@ function ChecksSummaryContent({
   checks: NonNullable<PrHint["checks"]>;
   hovered: boolean;
 }) {
+  const { t } = useTranslation();
   const { passed, failed, pending } = getChecksSummaryCounts(checks);
 
   const labelStyle = hovered ? checksSummaryLabelHoveredCombined : styles.checksSummaryLabel;
@@ -385,7 +388,7 @@ function ChecksSummaryContent({
       ) : (
         <ThemedGitHubIcon size={12} uniProps={iconUniProps} />
       )}
-      <Text style={labelStyle}>Checks</Text>
+      <Text style={labelStyle}>{t("common.workspaceHoverCard.checks")}</Text>
       <View style={styles.checksSummaryCounts}>
         <ChecksSummaryPill count={passed} kind="passed" />
         <ChecksSummaryPill count={failed} kind="failed" />

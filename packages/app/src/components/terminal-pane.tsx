@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Pressable,
@@ -169,6 +170,7 @@ export function TerminalPane({
   onOpenFileExplorer,
   onOpenWorkspaceFile,
 }: TerminalPaneProps) {
+  const { t } = useTranslation();
   const isAppVisible = useAppVisible();
   const { theme } = useUnistyles();
   const { settings } = useAppSettings();
@@ -750,7 +752,7 @@ export function TerminalPane({
   if (!client || !isConnected) {
     return (
       <View style={styles.centerState}>
-        <Text style={styles.stateText}>Host is not connected</Text>
+        <Text style={styles.stateText}>{t("common.host.notConnected")}</Text>
       </View>
     );
   }

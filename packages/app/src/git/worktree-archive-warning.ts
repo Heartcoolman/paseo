@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import { confirmDialog } from "@/utils/confirm-dialog";
 
 export interface WorktreeArchiveRisk {
@@ -10,10 +11,6 @@ export interface WorktreeArchiveConfirmationInput extends WorktreeArchiveRisk {
   worktreeName: string;
 }
 
-function pluralize(count: number, singular: string, plural = `${singular}s`): string {
-  return count === 1 ? singular : plural;
-}
-
 function formatDiffStat(diffStat: WorktreeArchiveRisk["diffStat"]): string | null {
   if (!diffStat) {
     return null;
@@ -21,10 +18,10 @@ function formatDiffStat(diffStat: WorktreeArchiveRisk["diffStat"]): string | nul
 
   const parts: string[] = [];
   if (diffStat.additions > 0) {
-    parts.push(`${diffStat.additions} added ${pluralize(diffStat.additions, "line")}`);
+    parts.push(i18n.t("git.archive.addedLineCount", { count: diffStat.additions }));
   }
   if (diffStat.deletions > 0) {
-    parts.push(`${diffStat.deletions} deleted ${pluralize(diffStat.deletions, "line")}`);
+    parts.push(i18n.t("git.archive.deletedLineCount", { count: diffStat.deletions }));
   }
 
   return parts.length > 0 ? parts.join(", ") : null;
@@ -39,12 +36,16 @@ export function buildWorktreeArchiveRiskReasons(input: WorktreeArchiveRisk): str
 
   if (hasUncommittedChanges) {
     const diffStatLabel = formatDiffStat(diffStat);
-    reasons.push(diffStatLabel ? `Uncommitted changes (${diffStatLabel})` : "Uncommitted changes");
+    reasons.push(
+      diffStatLabel
+        ? i18n.t("git.archive.uncommittedChangesWithStat", { stat: diffStatLabel })
+        : i18n.t("git.archive.uncommittedChanges"),
+    );
   }
 
   if ((input.aheadOfOrigin ?? 0) > 0) {
     const aheadOfOrigin = input.aheadOfOrigin ?? 0;
-    reasons.push(`${aheadOfOrigin} unpushed ${pluralize(aheadOfOrigin, "commit")}`);
+    reasons.push(i18n.t("git.archive.unpushedCommitCount", { count: aheadOfOrigin }));
   }
 
   return reasons;
@@ -70,10 +71,10 @@ export async function confirmRiskyWorktreeArchive(
   }
 
   return await confirmDialog({
-    title: `Archive "${input.worktreeName}"?`,
+    title: i18n.t("git.archive.confirmTitle", { name: input.worktreeName }),
     message,
-    confirmLabel: "Archive",
-    cancelLabel: "Cancel",
+    confirmLabel: i18n.t("git.action.archive"),
+    cancelLabel: i18n.t("common.action.cancel"),
     destructive: true,
   });
 }

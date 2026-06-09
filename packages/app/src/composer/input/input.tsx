@@ -22,6 +22,8 @@ import {
   forwardRef,
 } from "react";
 import { StyleSheet, withUnistyles } from "react-native-unistyles";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { ICON_SIZE, type Theme } from "@/styles/theme";
 import { ArrowUp, Mic, MicOff, CornerDownLeft, Plus, Square } from "lucide-react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
@@ -142,7 +144,9 @@ const MIN_INPUT_HEIGHT_DESKTOP = 46;
 const DEFAULT_MAX_INPUT_HEIGHT = 160;
 const MAX_INPUT_VIEWPORT_RATIO = 0.5;
 const MIN_INPUT_HEIGHT = isWeb ? MIN_INPUT_HEIGHT_DESKTOP : MIN_INPUT_HEIGHT_MOBILE;
-const ATTACHMENT_SHEET_HEADER: SheetHeader = { title: "Add attachment" };
+function getAttachmentSheetHeader(): SheetHeader {
+  return { title: i18n.t("composer.input.addAttachment") };
+}
 const ATTACHMENT_SHEET_SNAP_POINTS = ["34%", "45%"];
 
 type WebTextInputKeyPressEvent = NativeSyntheticEvent<
@@ -266,6 +270,7 @@ function AttachmentDropdown({
   renderAttachButtonIcon: (input: { hovered?: boolean }) => React.ReactElement;
   attachmentMenuItems: AttachmentMenuItem[];
 }) {
+  const { t } = useTranslation();
   const isCompact = useIsCompactFormFactor();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   useDismissKeyboardOnOpen(isSheetOpen, isCompact);
@@ -306,7 +311,7 @@ function AttachmentDropdown({
       <>
         <Pressable
           disabled={isButtonDisabled}
-          accessibilityLabel="Add attachment"
+          accessibilityLabel={t("composer.input.addAttachment")}
           accessibilityRole="button"
           testID="message-input-attach-button"
           onPress={handleOpenSheet}
@@ -315,7 +320,7 @@ function AttachmentDropdown({
           {renderMobileAttachButtonIcon}
         </Pressable>
         <AdaptiveModalSheet
-          header={ATTACHMENT_SHEET_HEADER}
+          header={getAttachmentSheetHeader()}
           visible={isSheetOpen}
           onClose={handleCloseSheet}
           snapPoints={ATTACHMENT_SHEET_SNAP_POINTS}
@@ -333,7 +338,7 @@ function AttachmentDropdown({
         <TooltipTrigger asChild>
           <DropdownMenuTrigger
             disabled={isButtonDisabled}
-            accessibilityLabel="Add attachment"
+            accessibilityLabel={t("composer.input.addAttachment")}
             accessibilityRole="button"
             testID="message-input-attach-button"
             style={attachButtonStyle}
@@ -342,7 +347,7 @@ function AttachmentDropdown({
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent side="top" align="center" offset={8}>
-          <Text style={styles.tooltipText}>Add attachment</Text>
+          <Text style={styles.tooltipText}>{t("composer.input.addAttachment")}</Text>
         </TooltipContent>
       </Tooltip>
       <DropdownMenuContent
@@ -436,10 +441,10 @@ function resolveSubmitAccessibilityLabel(input: {
   isAgentRunning: boolean;
 }): string {
   if (input.submitButtonAccessibilityLabel) return input.submitButtonAccessibilityLabel;
-  if (input.canPressLoadingButton) return "Interrupt agent";
-  if (input.defaultActionQueues) return "Queue message";
-  if (input.isAgentRunning) return "Send and interrupt";
-  return "Send message";
+  if (input.canPressLoadingButton) return i18n.t("composer.input.interruptAgent");
+  if (input.defaultActionQueues) return i18n.t("composer.input.queueMessage");
+  if (input.isAgentRunning) return i18n.t("composer.input.sendAndInterrupt");
+  return i18n.t("composer.input.sendMessage");
 }
 
 function resolveVoiceAccessibilityLabel(input: {
@@ -448,10 +453,12 @@ function resolveVoiceAccessibilityLabel(input: {
   isDictating: boolean;
 }): string {
   if (input.isRealtimeVoiceForCurrentAgent) {
-    return input.isMuted ? "Unmute Voice mode" : "Mute Voice mode";
+    return input.isMuted
+      ? i18n.t("composer.input.unmuteVoiceMode")
+      : i18n.t("composer.input.muteVoiceMode");
   }
-  if (input.isDictating) return "Stop dictation";
-  return "Start dictation";
+  if (input.isDictating) return i18n.t("composer.input.stopDictation");
+  return i18n.t("composer.input.startDictation");
 }
 
 function resolveVoiceTooltipText(input: {
@@ -459,9 +466,11 @@ function resolveVoiceTooltipText(input: {
   isMuted: boolean;
 }): string {
   if (input.isRealtimeVoiceForCurrentAgent) {
-    return input.isMuted ? "Unmute voice" : "Mute voice";
+    return input.isMuted
+      ? i18n.t("composer.input.unmuteVoice")
+      : i18n.t("composer.input.muteVoice");
   }
-  return "Dictation";
+  return i18n.t("composer.input.dictation");
 }
 
 function resolveSendTooltipLabel(input: {
@@ -469,7 +478,7 @@ function resolveSendTooltipLabel(input: {
   defaultActionQueues: boolean;
 }): string {
   if (input.submitButtonAccessibilityLabel) return input.submitButtonAccessibilityLabel;
-  return input.defaultActionQueues ? "Queue" : "Send";
+  return input.defaultActionQueues ? i18n.t("composer.input.queue") : i18n.t("composer.input.send");
 }
 
 interface DesktopKeyPressContext {
@@ -753,10 +762,13 @@ function FocusHint({
   visible: boolean;
   focusInputKeys: ShortcutChord | null | undefined;
 }) {
+  const { t } = useTranslation();
   if (!visible || !focusInputKeys) return null;
   return (
     <Text style={styles.focusHintText} pointerEvents="none">
-      {formatShortcut(focusInputKeys[0], getShortcutOs())} to focus
+      {t("composer.input.shortcutToFocus", {
+        shortcut: formatShortcut(focusInputKeys[0], getShortcutOs()),
+      })}
     </Text>
   );
 }
@@ -920,7 +932,7 @@ function toggleRealtimeVoiceImpl(ctx: ToggleRealtimeVoiceContext): void {
     return;
   }
   if (ctx.isAgentRunning) {
-    ctx.toast.error("Interrupt the agent before starting voice mode");
+    ctx.toast.error(i18n.t("composer.input.interruptBeforeVoiceMode"));
     return;
   }
   void ctx.voice.startVoice(ctx.voiceServerId, ctx.voiceAgentId).catch((error) => {
@@ -1239,7 +1251,7 @@ function resolveMessageInputProps(props: MessageInputProps): ResolvedMessageInpu
     onAddImages: props.onAddImages,
     client: props.client,
     isReadyForDictation: props.isReadyForDictation,
-    placeholder: props.placeholder ?? "Message...",
+    placeholder: props.placeholder ?? i18n.t("composer.input.messagePlaceholder"),
     autoFocus: props.autoFocus ?? false,
     autoFocusKey: props.autoFocusKey,
     disabled: props.disabled ?? false,
@@ -1308,6 +1320,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(
       inputWrapperStyle,
       attachmentSlot,
     } = resolveMessageInputProps(props);
+    const { t } = useTranslation();
     const isCompact = useIsCompactFormFactor();
     const { height: windowHeight } = useWindowDimensions();
     const maxInputHeight = resolveMaxInputHeight(windowHeight);
@@ -1856,7 +1869,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(
               onChangeText={handleInputChange}
               placeholder={placeholder}
               uniProps={textInputPlaceholderColorMapping}
-              accessibilityLabel="Message agent..."
+              accessibilityLabel={t("composer.input.messageAgentAccessibility")}
               onFocus={handleInputFocus}
               onBlur={handleInputBlur}
               style={textInputStyle}

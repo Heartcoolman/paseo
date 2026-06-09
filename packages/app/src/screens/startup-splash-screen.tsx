@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import Animated, {
   cancelAnimation,
   Easing,
@@ -297,6 +298,7 @@ const styles = StyleSheet.create((theme) => ({
 }));
 
 export function StartupSplashScreen({ bootstrapState }: StartupSplashScreenProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const webScrollbarStyle = useWebScrollbarStyle();
   const errorScrollViewStyle = useMemo(
@@ -339,7 +341,7 @@ export function StartupSplashScreen({ bootstrapState }: StartupSplashScreenProps
         }
         const message = error instanceof Error ? error.message : String(error);
         setDaemonLogs(null);
-        setLogsError(`Unable to load daemon logs: ${message}`);
+        setLogsError(t("common.splash.logsLoadError", { message }));
       })
       .finally(() => {
         if (!isCancelled) {
@@ -350,11 +352,11 @@ export function StartupSplashScreen({ bootstrapState }: StartupSplashScreenProps
     return () => {
       isCancelled = true;
     };
-  }, [isError]);
+  }, [isError, t]);
 
   const logsText = useMemo(() => {
     if (isLoadingLogs) {
-      return "Loading daemon logs...";
+      return t("common.splash.loadingLogs");
     }
     if (daemonLogs?.contents) {
       return daemonLogs.contents;
@@ -362,8 +364,8 @@ export function StartupSplashScreen({ bootstrapState }: StartupSplashScreenProps
     if (logsError) {
       return logsError;
     }
-    return "No daemon logs available.";
-  }, [daemonLogs?.contents, isLoadingLogs, logsError]);
+    return t("common.splash.noLogs");
+  }, [daemonLogs?.contents, isLoadingLogs, logsError, t]);
 
   const handleCopyLogs = useCallback(() => {
     const payload = daemonLogs?.logPath
@@ -409,13 +411,10 @@ export function StartupSplashScreen({ bootstrapState }: StartupSplashScreenProps
         <View style={styles.errorContent}>
           <View style={styles.errorHeader}>
             <PaseoLogo size={64} />
-            <Text style={styles.title}>Something went wrong</Text>
+            <Text style={styles.title}>{t("common.splash.somethingWentWrong")}</Text>
           </View>
 
-          <Text style={styles.errorDescription}>
-            The local server failed to start. If this keeps happening, please report the issue on
-            GitHub and include the logs below.
-          </Text>
+          <Text style={styles.errorDescription}>{t("common.splash.errorDescription")}</Text>
 
           <Text dataSet={CODE_SURFACE_DATASET} style={styles.errorMessage}>
             {bootstrapState.splashError}
@@ -437,16 +436,16 @@ export function StartupSplashScreen({ bootstrapState }: StartupSplashScreenProps
 
           <View style={styles.actionRow}>
             <Button variant="secondary" leftIcon={copyIcon} onPress={handleCopyLogs}>
-              Copy logs
+              {t("common.splash.copyLogs")}
             </Button>
             <Button variant="outline" leftIcon={warningIcon} onPress={openGithubIssue}>
-              Open GitHub issue
+              {t("common.splash.openGithubIssue")}
             </Button>
             <Button variant="outline" leftIcon={bookIcon} onPress={openDocs}>
-              Docs
+              {t("common.splash.docs")}
             </Button>
             <Button variant="default" leftIcon={retryIcon} onPress={bootstrapState.retry}>
-              Retry
+              {t("common.action.retry")}
             </Button>
           </View>
         </View>

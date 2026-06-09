@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Terminal } from "lucide-react-native";
 import { Text, View } from "react-native";
@@ -34,6 +35,7 @@ function useTerminalPanelDescriptor(
   target: { kind: "terminal"; terminalId: string },
   context: { serverId: string; workspaceId: string },
 ): PanelDescriptor {
+  const { t } = useTranslation();
   const client = useSessionStore((state) => state.sessions[context.serverId]?.client ?? null);
   const workspaceAuthority = useWorkspaceExecutionAuthority(context.serverId, context.workspaceId)!;
   const workspaceDirectory = workspaceAuthority.ok
@@ -47,7 +49,7 @@ function useTerminalPanelDescriptor(
         if (!client || !workspaceDirectory) {
           throw new Error(
             workspaceAuthority.ok
-              ? "Workspace execution directory not found"
+              ? t("workspace.panel.executionDirNotFoundError")
               : workspaceAuthority.message,
           );
         }
@@ -61,8 +63,8 @@ function useTerminalPanelDescriptor(
     terminalsQuery.data?.terminals.find((entry) => entry.id === target.terminalId) ?? null;
 
   return {
-    label: trimNonEmpty(terminal?.title ?? terminal?.name ?? null) ?? "Terminal",
-    subtitle: "Terminal",
+    label: trimNonEmpty(terminal?.title ?? terminal?.name ?? null) ?? t("workspace.tab.terminal"),
+    subtitle: t("workspace.tab.terminal"),
     titleState: "ready",
     icon: Terminal,
     statusBucket: null,
@@ -70,6 +72,7 @@ function useTerminalPanelDescriptor(
 }
 
 function TerminalPanel() {
+  const { t } = useTranslation();
   const { serverId, workspaceId, target, openFileInWorkspace } = usePaneContext();
   const { isWorkspaceFocused, isPaneFocused } = usePaneFocus();
   const workspaceAuthority = useWorkspaceExecutionAuthority(serverId, workspaceId)!;
@@ -100,7 +103,7 @@ function TerminalPanel() {
       <View style={CENTERED_PADDED_STYLE}>
         <Text>
           {workspaceAuthority.ok
-            ? "Workspace execution directory not found."
+            ? t("workspace.panel.executionDirNotFound")
             : workspaceAuthority.message}
         </Text>
       </View>

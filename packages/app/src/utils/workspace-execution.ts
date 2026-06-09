@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import type { WorkspaceDescriptor } from "@/stores/session-store";
 import { normalizeWorkspaceOpaqueId, normalizeWorkspacePath } from "@/utils/workspace-identity";
 
@@ -101,7 +102,7 @@ export function getWorkspaceExecutionAuthority(
       return {
         ok: false,
         reason: "workspace_id_missing",
-        message: "Workspace id is required.",
+        message: i18n.t("common.workspace.idRequired"),
       };
     }
   }
@@ -112,8 +113,8 @@ export function getWorkspaceExecutionAuthority(
       reason: "workspace_missing",
       message:
         "workspaces" in input
-          ? `Workspace not found: ${input.workspaceId ?? ""}`
-          : "Workspace not found.",
+          ? i18n.t("common.workspace.notFoundWithId", { workspaceId: input.workspaceId ?? "" })
+          : i18n.t("common.workspace.notFound"),
     };
   }
 
@@ -122,7 +123,9 @@ export function getWorkspaceExecutionAuthority(
     return {
       ok: false,
       reason: "workspace_directory_missing",
-      message: `Workspace directory is missing for workspace ${workspace.id}`,
+      message: i18n.t("common.workspace.directoryMissingForWorkspace", {
+        workspaceId: workspace.id,
+      }),
     };
   }
 
@@ -169,8 +172,10 @@ export function requireWorkspaceExecutionDirectory(input: {
   if (!workspaceDirectory) {
     throw new Error(
       input.workspaceId
-        ? `Workspace directory is missing for workspace ${input.workspaceId}`
-        : "Workspace directory is missing.",
+        ? i18n.t("common.workspace.directoryMissingForWorkspace", {
+            workspaceId: input.workspaceId,
+          })
+        : i18n.t("common.workspace.directoryMissing"),
     );
   }
   return workspaceDirectory;

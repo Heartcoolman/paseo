@@ -1,3 +1,5 @@
+import i18n from "@/i18n";
+
 export interface QuestionOption {
   label: string;
   description?: string;
@@ -139,5 +141,8 @@ export function shouldSubmitEmptyOnDismiss(questions: QuestionFormQuestion[]): b
 }
 
 export function resolveDismissLabel(questions: QuestionFormQuestion[]): string {
-  return questions.find((question) => question.dismissLabel)?.dismissLabel ?? "Dismiss";
+  return (
+    questions.find((question) => question.dismissLabel)?.dismissLabel ??
+    i18n.t("common.action.dismiss")
+  );
 }

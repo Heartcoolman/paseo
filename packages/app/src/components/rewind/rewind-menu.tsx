@@ -1,4 +1,5 @@
 import { memo, useCallback, useMemo, useState, type ReactElement } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { FileText, Layers, MessageSquare, Undo2 } from "lucide-react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
@@ -41,6 +42,7 @@ export const RewindMenu = memo(function RewindMenu({
   isPending: isPendingProp = false,
   testID = "rewind-menu",
 }: RewindMenuProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const items = useRewindCapabilities(capabilities);
   const [isOpen, setIsOpen] = useState(false);
@@ -79,10 +81,10 @@ export const RewindMenu = memo(function RewindMenu({
   const tooltipContent = useMemo(
     () => (
       <TooltipContent side="top" align="center" offset={8}>
-        <Text style={styles.tooltipText}>Rewind to this message</Text>
+        <Text style={styles.tooltipText}>{t("common.rewind.tooltip")}</Text>
       </TooltipContent>
     ),
-    [],
+    [t],
   );
 
   if (items.length === 0) {
@@ -95,7 +97,7 @@ export const RewindMenu = memo(function RewindMenu({
         <TooltipTrigger asChild>
           <View style={styles.triggerSlot} collapsable={false}>
             <DropdownMenuTrigger
-              accessibilityLabel="Rewind to this message"
+              accessibilityLabel={t("common.rewind.tooltip")}
               accessibilityRole="button"
               disabled={isLocked}
               style={triggerStyle}
@@ -114,7 +116,7 @@ export const RewindMenu = memo(function RewindMenu({
       </Tooltip>
       <DropdownMenuContent align="end" minWidth={220} side="bottom" testID={`${testID}-content`}>
         <View style={styles.warningHeader}>
-          <Text style={styles.warningText}>This action cannot be undone</Text>
+          <Text style={styles.warningText}>{t("common.rewind.cannotBeUndone")}</Text>
         </View>
         <DropdownMenuSeparator />
         {items.map((item) => (

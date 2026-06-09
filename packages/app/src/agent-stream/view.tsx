@@ -20,8 +20,10 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, withUnistyles } from "react-native-unistyles";
 import { MAX_CONTENT_WIDTH, useIsCompactFormFactor } from "@/constants/layout";
+import i18n from "@/i18n";
 import { useMutation } from "@tanstack/react-query";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { Check, ChevronDown, X } from "lucide-react-native";
@@ -170,7 +172,7 @@ function renderListEmptyComponent(input: {
 
   return (
     <View style={input.emptyStateStyle}>
-      <Text style={stylesheet.emptyStateText}>Start chatting with this agent...</Text>
+      <Text style={stylesheet.emptyStateText}>{i18n.t("agent.stream.emptyState")}</Text>
     </View>
   );
 }
@@ -245,6 +247,7 @@ const AgentStreamViewComponent = forwardRef<AgentStreamViewHandle, AgentStreamVi
     },
     ref,
   ) {
+    const { t } = useTranslation();
     const viewportRef = useRef<StreamViewportHandle | null>(null);
     const isMobile = useIsCompactFormFactor();
     const streamRenderStrategy = useMemo(
@@ -745,7 +748,7 @@ const AgentStreamViewComponent = forwardRef<AgentStreamViewHandle, AgentStreamVi
                   style={stylesheet.scrollToBottomButton}
                   onPress={scrollToBottom}
                   accessibilityRole="button"
-                  accessibilityLabel="Scroll to bottom"
+                  accessibilityLabel={t("agent.stream.scrollToBottom")}
                   testID="scroll-to-bottom-button"
                 >
                   <ChevronDown size={24} color={stylesheet.scrollToBottomIcon.color} />
@@ -906,11 +909,14 @@ function PermissionRequestCard({
   permission: PendingPermission;
   client: DaemonClient | null;
 }) {
+  const { t } = useTranslation();
   const isMobile = useIsCompactFormFactor();
 
   const { request } = permission;
   const isPlanRequest = request.kind === "plan";
-  const title = isPlanRequest ? "Plan" : (request.title ?? request.name ?? "Permission Required");
+  const title = isPlanRequest
+    ? t("agent.permission.planTitle")
+    : (request.title ?? request.name ?? t("agent.permission.requiredTitle"));
   const description = request.description ?? "";
   const resolvedToolCallDetail = useMemo(
     () =>
@@ -931,19 +937,19 @@ function PermissionRequestCard({
     return [
       {
         id: "reject",
-        label: "Deny",
+        label: t("agent.permission.deny"),
         behavior: "deny",
         variant: "danger",
         intent: "dismiss",
       },
       {
         id: "accept",
-        label: isPlanRequest ? "Implement" : "Accept",
+        label: isPlanRequest ? t("agent.permission.implement") : t("agent.permission.accept"),
         behavior: "allow",
         variant: "primary",
       },
     ];
-  }, [isPlanRequest, request]);
+  }, [isPlanRequest, request, t]);
 
   const planMarkdown = useMemo(() => {
     if (!request) {
@@ -1042,7 +1048,7 @@ function PermissionRequestCard({
   const footer = (
     <>
       <Text testID="permission-request-question" style={permissionStyles.question}>
-        How would you like to proceed?
+        {t("agent.permission.howToProceed")}
       </Text>
 
       <View style={optionsContainerStyle}>
@@ -1094,7 +1100,7 @@ function PermissionRequestCard({
 
       {planMarkdown ? (
         <PlanCard
-          title="Proposed plan"
+          title={t("agent.permission.proposedPlan")}
           text={planMarkdown}
           testID="permission-plan-card"
           disableOuterSpacing

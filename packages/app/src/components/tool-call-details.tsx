@@ -21,6 +21,7 @@ import { HighlightedLines } from "./highlighted-content";
 import { DiffViewer } from "./diff-viewer";
 import { getCodeInsets } from "./code-insets";
 import { isWeb } from "@/constants/platform";
+import i18n from "@/i18n";
 
 const ScrollView = isWeb ? RNScrollView : GHScrollView;
 
@@ -227,7 +228,9 @@ function WorktreeSetupDetailSection({
           >
             <View style={styles.codeLine} dataSet={CODE_SURFACE_DATASET}>
               <Text selectable style={styles.scrollText}>
-                {hasLog ? setupLog : `Preparing worktree ${branchName} at ${worktreePath}`}
+                {hasLog
+                  ? setupLog
+                  : i18n.t("common.toolCall.preparingWorktree", { branchName, worktreePath })}
               </Text>
             </View>
           </ScrollView>
@@ -244,7 +247,7 @@ function resolveSubAgentFallbackHeader(
   if (subAgentType && description) {
     return `${subAgentType}: ${description}`;
   }
-  return subAgentType ?? description ?? "Sub-agent activity";
+  return subAgentType ?? description ?? i18n.t("common.toolCall.subAgentActivity");
 }
 
 interface SubAgentDetailProps {
@@ -609,8 +612,8 @@ function buildUnknownSections(detail: UnknownDetail, ds: DetailStyles): ReactNod
   }
 
   const sectionsFromTopLevel = [
-    { title: "Input", value: detail.input },
-    { title: "Output", value: detail.output },
+    { title: i18n.t("common.toolCall.input"), value: detail.input },
+    { title: i18n.t("common.toolCall.output"), value: detail.output },
   ].filter((entry) =>
     hasMeaningfulToolCallDetail({
       type: "unknown",
@@ -731,7 +734,7 @@ function buildDetailSections(
 function ErrorSection({ errorText, ds }: { errorText: string; ds: DetailStyles }) {
   return (
     <View style={styles.section}>
-      <Text style={SECTION_TITLE_ERROR_STYLE}>Error</Text>
+      <Text style={SECTION_TITLE_ERROR_STYLE}>{i18n.t("common.toolCall.error")}</Text>
       <ScrollView
         horizontal
         nestedScrollEnabled
@@ -786,7 +789,9 @@ function ToolCallDetailsContentInner({
     if (showLoadingSkeleton) {
       return <LoadingSkeleton containerStyle={ds.loadingContainerStyle} />;
     }
-    return <Text style={styles.emptyStateText}>No additional details available</Text>;
+    return (
+      <Text style={styles.emptyStateText}>{i18n.t("common.toolCall.noAdditionalDetails")}</Text>
+    );
   }
 
   return <View style={ds.fullBleedContainerStyle}>{sections}</View>;

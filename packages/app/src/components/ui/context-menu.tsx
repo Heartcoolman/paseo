@@ -40,6 +40,7 @@ import {
 import { FloatingScrollView, FloatingSurface } from "@/components/ui/floating";
 import { isWeb, isNative } from "@/constants/platform";
 import { useWebScrollbarStyle } from "@/hooks/use-web-scrollbar-style";
+import { useTranslation } from "react-i18next";
 
 // Keep parity with dropdown-menu action statuses.
 export type ActionStatus = "idle" | "pending" | "success";
@@ -386,6 +387,7 @@ export function ContextMenuContent({
   testID?: string;
 }>): ReactElement | null {
   const context = useContextMenuContext("ContextMenuContent");
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const webScrollbarStyle = useWebScrollbarStyle();
   const isMobile = useIsCompactFormFactor();
@@ -560,7 +562,7 @@ export function ContextMenuContent({
       <View style={styles.overlay}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Menu backdrop"
+          accessibilityLabel={t("common.menu.backdrop")}
           style={styles.backdrop}
           onPress={handleClose}
           testID={testID ? `${testID}-backdrop` : undefined}

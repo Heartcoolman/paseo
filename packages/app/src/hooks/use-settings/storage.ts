@@ -1,5 +1,6 @@
 import { isSyntaxThemeId, type SyntaxThemeId } from "@getpaseo/highlight";
 import type { QueryClient } from "@tanstack/react-query";
+import type { LanguagePreference } from "@/i18n";
 import type { DesktopSettings } from "@/desktop/settings/desktop-settings";
 import { THEME_TO_UNISTYLES, type ThemeName } from "@/styles/theme";
 
@@ -13,6 +14,7 @@ export type ServiceUrlBehavior = "ask" | "in-app" | "external";
 
 const VALID_THEMES = new Set<string>([...Object.keys(THEME_TO_UNISTYLES), "auto"]);
 const VALID_SERVICE_URL_BEHAVIORS = new Set<ServiceUrlBehavior>(["ask", "in-app", "external"]);
+const VALID_LANGUAGES = new Set<LanguagePreference>(["system", "en", "zh"]);
 export const DEFAULT_TERMINAL_SCROLLBACK_LINES = 10_000;
 export const MIN_TERMINAL_SCROLLBACK_LINES = 0;
 export const MAX_TERMINAL_SCROLLBACK_LINES = 1_000_000;
@@ -26,6 +28,7 @@ export const MAX_FONT_FAMILY_LENGTH = 200;
 
 export interface AppSettings {
   theme: ThemeName | "auto";
+  language: LanguagePreference; // "system" follows the device locale
   sendBehavior: SendBehavior;
   serviceUrlBehavior: ServiceUrlBehavior;
   terminalScrollbackLines: number;
@@ -43,6 +46,7 @@ export interface Settings extends AppSettings {
 
 export const DEFAULT_CLIENT_SETTINGS: AppSettings = {
   theme: "auto",
+  language: "system",
   sendBehavior: "interrupt",
   serviceUrlBehavior: "ask",
   terminalScrollbackLines: DEFAULT_TERMINAL_SCROLLBACK_LINES,
@@ -148,6 +152,9 @@ function pickAppSettings(stored: Partial<AppSettings>): Partial<AppSettings> {
   const result: Partial<AppSettings> = {};
   if (typeof stored.theme === "string" && VALID_THEMES.has(stored.theme)) {
     result.theme = stored.theme;
+  }
+  if (typeof stored.language === "string" && VALID_LANGUAGES.has(stored.language)) {
+    result.language = stored.language;
   }
   if (stored.sendBehavior === "interrupt" || stored.sendBehavior === "queue") {
     result.sendBehavior = stored.sendBehavior;

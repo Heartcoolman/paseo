@@ -7,6 +7,7 @@ import { useRewindComposerRestore } from "./composer-restore";
 import { useSessionStore } from "@/stores/session-store";
 import { shouldRestoreComposerForRewindMode } from "./rewind-mode";
 import { clearOptimisticUserMessages } from "@/types/stream";
+import i18n from "@/i18n";
 
 interface UseRewindAgentMutationInput {
   serverId?: string;
@@ -59,7 +60,7 @@ export function useRewindAgentMutation(input: UseRewindAgentMutationInput): {
       composerRestore?.restoreTextIfComposerEmpty(variables.rewoundText);
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Failed to rewind agent");
+      toast.error(error instanceof Error ? error.message : i18n.t("common.rewind.failed"));
     },
   });
 

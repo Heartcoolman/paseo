@@ -7,6 +7,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Pressable,
@@ -37,6 +38,7 @@ import type {
   DraggableRenderItemInfo,
 } from "@/components/draggable-list.types";
 import { isNative, isWeb } from "@/constants/platform";
+import i18n from "@/i18n";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -176,18 +178,18 @@ interface WorkspaceDesktopTabsRowProps {
 
 function getFallbackTabLabel(tab: WorkspaceTabDescriptor): string {
   if (tab.target.kind === "draft") {
-    return "New Agent";
+    return i18n.t("workspace.tab.newAgent");
   }
   if (tab.target.kind === "setup") {
-    return "Setup";
+    return i18n.t("workspace.tab.setup");
   }
   if (tab.target.kind === "terminal") {
-    return "Terminal";
+    return i18n.t("workspace.tab.terminal");
   }
   if (tab.target.kind === "file") {
     return tab.target.path.split("/").findLast(Boolean) ?? tab.target.path;
   }
-  return "Agent";
+  return i18n.t("workspace.tab.agent");
 }
 
 function useMiddleClickClose(onClose: () => void) {
@@ -484,6 +486,7 @@ export function WorkspaceDesktopTabsRow({
   tabDropPreviewIndex = null,
   showPaneSplitActions = true,
 }: WorkspaceDesktopTabsRowProps) {
+  const { t } = useTranslation();
   const newTabKeys = useShortcutKeys("workspace-tab-new");
   const newTerminalKeys = useShortcutKeys("workspace-terminal-new");
   const splitRightKeys = useShortcutKeys("workspace-pane-split-right");
@@ -679,14 +682,14 @@ export function WorkspaceDesktopTabsRow({
             testID="workspace-new-agent-tab"
             onPress={handleCreateAgentTab}
             accessibilityRole="button"
-            accessibilityLabel="New agent tab"
+            accessibilityLabel={t("workspace.tabsRow.newAgentTab")}
             style={newTabActionButtonStyle}
           >
             <ThemedSquarePen size={14} uniProps={mutedColorMapping} />
           </TooltipTrigger>
           <TooltipContent side="bottom" align="center" offset={8}>
             <View style={styles.newTabTooltipRow}>
-              <Text style={styles.newTabTooltipText}>New agent tab</Text>
+              <Text style={styles.newTabTooltipText}>{t("workspace.tabsRow.newAgentTab")}</Text>
               {newTabKeys ? (
                 <Shortcut chord={newTabKeys} style={styles.newTabTooltipShortcut} />
               ) : null}
@@ -700,7 +703,9 @@ export function WorkspaceDesktopTabsRow({
             disabled={terminalDisabled}
             accessibilityRole="button"
             accessibilityLabel={
-              isWaitingOnTerminalReadiness ? "Preparing terminal tab" : "New terminal tab"
+              isWaitingOnTerminalReadiness
+                ? t("workspace.tabsRow.preparingTerminalTab")
+                : t("workspace.tabsRow.newTerminalTab")
             }
             style={newTerminalActionButtonStyle}
           >
@@ -709,7 +714,9 @@ export function WorkspaceDesktopTabsRow({
           <TooltipContent side="bottom" align="center" offset={8}>
             <View style={styles.newTabTooltipRow}>
               <Text style={styles.newTabTooltipText}>
-                {isWaitingOnTerminalReadiness ? "Preparing terminal..." : "New terminal tab"}
+                {isWaitingOnTerminalReadiness
+                  ? t("workspace.tabsRow.preparingTerminal")
+                  : t("workspace.tabsRow.newTerminalTab")}
               </Text>
               {newTerminalKeys ? (
                 <Shortcut chord={newTerminalKeys} style={styles.newTabTooltipShortcut} />
@@ -723,14 +730,14 @@ export function WorkspaceDesktopTabsRow({
               testID="workspace-new-browser"
               onPress={handleCreateBrowser}
               accessibilityRole="button"
-              accessibilityLabel="New browser tab"
+              accessibilityLabel={t("workspace.tabsRow.newBrowserTab")}
               style={newTabActionButtonStyle}
             >
               <ThemedGlobe size={14} uniProps={mutedColorMapping} />
             </TooltipTrigger>
             <TooltipContent side="bottom" align="center" offset={8}>
               <View style={styles.newTabTooltipRow}>
-                <Text style={styles.newTabTooltipText}>New browser tab</Text>
+                <Text style={styles.newTabTooltipText}>{t("workspace.tabsRow.newBrowserTab")}</Text>
               </View>
             </TooltipContent>
           </Tooltip>
@@ -741,14 +748,16 @@ export function WorkspaceDesktopTabsRow({
               <TooltipTrigger
                 onPress={onSplitRight}
                 accessibilityRole="button"
-                accessibilityLabel="Split pane right"
+                accessibilityLabel={t("workspace.tabsRow.splitPaneRight")}
                 style={newTabActionButtonStyle}
               >
                 <ThemedColumns2 size={14} uniProps={mutedColorMapping} />
               </TooltipTrigger>
               <TooltipContent side="bottom" align="center" offset={8}>
                 <View style={styles.newTabTooltipRow}>
-                  <Text style={styles.newTabTooltipText}>Split pane right</Text>
+                  <Text style={styles.newTabTooltipText}>
+                    {t("workspace.tabsRow.splitPaneRight")}
+                  </Text>
                   {splitRightKeys ? (
                     <Shortcut chord={splitRightKeys} style={styles.newTabTooltipShortcut} />
                   ) : null}
@@ -759,14 +768,16 @@ export function WorkspaceDesktopTabsRow({
               <TooltipTrigger
                 onPress={onSplitDown}
                 accessibilityRole="button"
-                accessibilityLabel="Split pane down"
+                accessibilityLabel={t("workspace.tabsRow.splitPaneDown")}
                 style={newTabActionButtonStyle}
               >
                 <ThemedRows2 size={14} uniProps={mutedColorMapping} />
               </TooltipTrigger>
               <TooltipContent side="bottom" align="center" offset={8}>
                 <View style={styles.newTabTooltipRow}>
-                  <Text style={styles.newTabTooltipText}>Split pane down</Text>
+                  <Text style={styles.newTabTooltipText}>
+                    {t("workspace.tabsRow.splitPaneDown")}
+                  </Text>
                   {splitDownKeys ? (
                     <Shortcut chord={splitDownKeys} style={styles.newTabTooltipShortcut} />
                   ) : null}
@@ -830,6 +841,7 @@ function ResolvedDesktopTabChip({
   showDropIndicatorBefore: boolean;
   showDropIndicatorAfter: boolean;
 }) {
+  const { t } = useTranslation();
   const resolvedTab = useMemo(
     () =>
       buildWorkspaceDesktopTabActions({
@@ -868,7 +880,9 @@ function ResolvedDesktopTabChip({
     >
       {(presentation) => {
         const tooltipLabel =
-          presentation.titleState === "loading" ? "Loading agent title" : presentation.label;
+          presentation.titleState === "loading"
+            ? t("workspace.tab.loadingAgentTitle")
+            : presentation.label;
 
         return (
           <View style={styles.tabSlot}>

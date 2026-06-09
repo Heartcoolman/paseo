@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, View, type PressableStateCallbackType } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, GitBranch } from "lucide-react-native";
@@ -26,6 +27,7 @@ export function BranchSwitcher({
   workspaceId,
   isGitCheckout,
 }: BranchSwitcherProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const isCompact = useIsCompactFormFactor();
   const anchorRef = useRef<View>(null);
@@ -91,7 +93,9 @@ export function BranchSwitcher({
         onPress={handleOpen}
         style={triggerStyle}
         accessibilityRole="button"
-        accessibilityLabel={`Current branch: ${currentBranchName}. Press to switch branch.`}
+        accessibilityLabel={t("git.branchSwitcher.currentBranchHint", {
+          branchName: currentBranchName,
+        })}
       >
         {titleContent}
         {!isCompact ? <ChevronDown size={12} color={theme.colors.foregroundMuted} /> : null}
@@ -101,10 +105,10 @@ export function BranchSwitcher({
         value={currentBranchName}
         onSelect={handleBranchSelect}
         searchable
-        placeholder="Switch branch..."
-        searchPlaceholder="Filter branches..."
-        emptyText="No branches found."
-        title="Switch branch"
+        placeholder={t("git.branchSwitcher.switchBranchPlaceholder")}
+        searchPlaceholder={t("git.branchSwitcher.filterBranches")}
+        emptyText={t("git.branchSwitcher.noBranchesFound")}
+        title={t("git.branchSwitcher.switchBranchTitle")}
         open={isOpen}
         onOpenChange={setIsOpen}
         anchorRef={anchorRef}

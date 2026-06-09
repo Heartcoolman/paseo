@@ -1,5 +1,6 @@
 import type { AgentProvider, ToolCallDetail } from "@getpaseo/protocol/agent-types";
 import type { AgentAttachment, AgentStreamEventPayload } from "@getpaseo/protocol/messages";
+import i18n from "@/i18n";
 import type { AttachmentMetadata } from "@/attachments/types";
 import { extractTaskEntriesFromToolCall } from "../utils/tool-call-parsers";
 import { splitMarkdownBlocks } from "@/utils/split-markdown-blocks";
@@ -537,7 +538,8 @@ export function mergeAgentToolCallItem(
   const mergedStatus = mergeAgentToolCallStatus(existing.payload.data.status, data.status);
   const mergedError =
     mergedStatus === "failed"
-      ? (data.error ?? existing.payload.data.error ?? { message: "Tool call failed" })
+      ? (data.error ??
+        existing.payload.data.error ?? { message: i18n.t("common.stream.toolCallFailed") })
       : null;
   const mergedMetadata = mergeToolCallMetadata(existing.payload.data.metadata, data.metadata);
   const mergedDetail = mergeToolCallDetail(existing.payload.data.detail, data.detail);
@@ -780,7 +782,7 @@ function reduceTimelineEvent(
         id: createTimelineId("error", item.message ?? "", timestamp),
         timestamp,
         activityType: "error",
-        message: item.message ?? "Unknown error",
+        message: item.message ?? i18n.t("common.stream.unknownError"),
       };
       return finalizeActiveThoughts(appendActivityLog(state, activity));
     }

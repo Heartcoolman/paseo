@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Keyboard, ScrollView, Text, View } from "react-native";
+import i18n from "@/i18n";
 import ReanimatedAnimated from "react-native-reanimated";
 import { StyleSheet } from "react-native-unistyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -146,12 +147,12 @@ async function submitDraftCreateRequest(input: {
   invariant(workspaceDirectory, "Workspace directory is required");
   invariant(workspaceExecutionAuthority, "Workspace authority is required");
   if (!client) {
-    throw new Error("Host is not connected");
+    throw new Error(i18n.t("common.host.notConnected"));
   }
 
   const provider = autoSubmitConfig?.provider ?? composerState.selectedProvider;
   if (!provider) {
-    throw new Error("Select a model");
+    throw new Error(i18n.t("common.composer.selectAModel"));
   }
   const modeIdOverride = resolveDraftModeIdOverride({
     autoSubmitConfig,
@@ -213,7 +214,7 @@ function buildDraftAgentSnapshot(input: {
   });
   const provider = autoSubmitConfig?.provider ?? composerState.selectedProvider;
   if (!provider) {
-    throw new Error("Select a model");
+    throw new Error(i18n.t("common.composer.selectAModel"));
   }
   return {
     serverId,
@@ -230,7 +231,7 @@ function buildDraftAgentSnapshot(input: {
     pendingPermissions: [],
     persistence: null,
     runtimeInfo: { provider, sessionId: null, model, modeId },
-    title: "Agent",
+    title: i18n.t("common.composer.draftAgentTitle"),
     cwd: workspaceDirectory,
     model,
     features: composerState.agentControls.features,

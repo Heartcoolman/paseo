@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -74,6 +75,7 @@ function GitActionMenuItem({
 }
 
 export function GitActionsSplitButton({ gitActions, hideLabels }: GitActionsSplitButtonProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const toast = useToast();
   const archiveShortcutKeys = useShortcutKeys("archive-worktree");
@@ -162,7 +164,7 @@ export function GitActionsSplitButton({ gitActions, hideLabels }: GitActionsSpli
                 testID="changes-primary-cta-caret"
                 style={caretTriggerStyle}
                 accessibilityRole="button"
-                accessibilityLabel="More options"
+                accessibilityLabel={t("common.git.moreOptions")}
               >
                 <ChevronDown size={16} color={theme.colors.foregroundMuted} />
               </DropdownMenuTrigger>
@@ -192,7 +194,7 @@ export function GitActionsSplitButton({ gitActions, hideLabels }: GitActionsSpli
             hitSlop={8}
             style={overflowMenuButtonStyle}
             accessibilityRole="button"
-            accessibilityLabel="More actions"
+            accessibilityLabel={t("common.git.moreActions")}
           >
             <MoreVertical size={16} color={theme.colors.foregroundMuted} />
           </DropdownMenuTrigger>

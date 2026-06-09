@@ -1,4 +1,5 @@
 import { getDesktopHost, isElectronRuntime } from "@/desktop/host";
+import i18n from "@/i18n";
 import {
   loadAppSettingsFromStorage,
   persistAppSettings,
@@ -36,11 +37,11 @@ async function resolveBehavior(url: string): Promise<Exclude<ServiceUrlBehavior,
     return "external";
   }
 
-  const result = await askWithCheckbox(`Open ${url}?`, {
-    title: "Open service URL",
-    okLabel: "In Paseo",
-    cancelLabel: "External browser",
-    checkboxLabel: "Don't ask again",
+  const result = await askWithCheckbox(i18n.t("common.serviceUrl.openPrompt", { url }), {
+    title: i18n.t("common.serviceUrl.title"),
+    okLabel: i18n.t("common.serviceUrl.inApp"),
+    cancelLabel: i18n.t("common.serviceUrl.externalBrowser"),
+    checkboxLabel: i18n.t("common.serviceUrl.dontAskAgain"),
   });
 
   const choice: Exclude<ServiceUrlBehavior, "ask"> = result.confirmed ? "in-app" : "external";

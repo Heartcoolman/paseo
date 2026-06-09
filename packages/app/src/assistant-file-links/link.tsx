@@ -8,6 +8,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native-unistyles";
 import { isNative, isWeb } from "@/constants/platform";
 import { MarkdownTextSpan } from "@/components/markdown-text";
@@ -228,6 +229,7 @@ function FileLinkHoverTooltip({
   filePath: string | null;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
   if (!isWeb) {
     return children;
   }
@@ -245,7 +247,7 @@ function FileLinkHoverTooltip({
             <View style={styles.tooltipHintRow}>
               <Shortcut keys={FILE_LINK_TOOLTIP_MOD_KEYS} />
               <Text selectable={false} style={styles.tooltipHintText}>
-                click for side pane
+                {t("common.fileLink.clickForSidePane")}
               </Text>
             </View>
           </View>

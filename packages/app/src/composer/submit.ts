@@ -1,3 +1,5 @@
+import i18n from "@/i18n";
+
 export type AgentInputSubmitResult = "noop" | "queued" | "submitted" | "failed";
 
 export interface AgentInputSubmitActionInput<TAttachment> {
@@ -67,7 +69,9 @@ export async function submitAgentInput<TAttachment>(
       input.setUserInput(trimmedMessage);
       input.setAttachments(attachments);
     }
-    input.setSendError(error instanceof Error ? error.message : "Failed to send message");
+    input.setSendError(
+      error instanceof Error ? error.message : i18n.t("common.composer.failedToSendMessage"),
+    );
     input.setIsProcessing(false);
     return "failed";
   }
