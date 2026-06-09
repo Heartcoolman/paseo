@@ -34,7 +34,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          # node 24 ships npm 11, matching the env the committed lockfile was
+          # authored in. npm 10 (node 22) rejects it as out-of-sync.
+          node-version: "24"
           cache: "npm"
 
       - name: Install dependencies
