@@ -42,6 +42,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # The app imports built declarations from workspace packages
+      # (@getpaseo/highlight, client, protocol, expo-two-way-audio). Their dist/
+      # must exist before Metro bundles, or it fails to resolve them. Mirrors
+      # deploy-app.yml.
+      - name: Build app dependencies
+        run: npm run build:app-deps
+
       - name: Build unsigned IPA
         working-directory: packages/app
         env:
