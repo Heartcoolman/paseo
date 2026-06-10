@@ -31,6 +31,7 @@ import { useSessionStore } from "@/stores/session-store";
 import { toXtermTheme } from "@/utils/to-xterm-theme";
 import TerminalEmulator, { type TerminalEmulatorHandle } from "./terminal-emulator";
 import { useIsCompactFormFactor } from "@/constants/layout";
+import { isNative } from "@/constants/platform";
 import {
   applyTerminalRendererReadyChange,
   shouldReplayTerminalSnapshotForRenderer,
@@ -183,9 +184,12 @@ export function TerminalPane({
   const mobileView = usePanelStore((state) => state.mobileView);
   const showMobileAgentList = usePanelStore((state) => state.showMobileAgentList);
   const swipeGesturesEnabled = isMobile && mobileView === "agent";
+  // Soft keyboards lack Esc/Ctrl/Tab/arrows, so wide native screens (iPad) need
+  // the key bar and keyboard avoidance too — breakpoint alone is not the gate.
+  const showVirtualKeyboard = isMobile || isNative;
   const { shift: keyboardShift, style: keyboardPaddingStyle } = useKeyboardShiftStyle({
     mode: "padding",
-    enabled: isMobile,
+    enabled: showVirtualKeyboard,
   });
 
   const client = useHostRuntimeClient(serverId);
@@ -808,7 +812,7 @@ export function TerminalPane({
         </View>
       ) : null}
 
-      {isMobile ? (
+      {showVirtualKeyboard ? (
         <View style={styles.keyboardContainer} testID="terminal-virtual-keyboard">
           <View style={styles.keyboardRows}>
             <View style={styles.keyboardRow}>
